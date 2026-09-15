@@ -53,7 +53,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 // ----------- FUNCIONES PROPIAS -----------
 
 // Primero definimos las constantes que regulan la funcionalidad del callback
-constexpr float variacionColor[4] = {0.12, 0.06, 0.03};
+constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
 constexpr float margenInferior = 0, margenSuperior = 1;
 constexpr int r = 0, g = 1, b = 2, alfa = 3;
 constexpr int numCanales = 3;
@@ -67,14 +67,20 @@ struct FlagsOndas {
 // múltiplos del mismo elemento para que coincidan en sus picos cada ciertas repeticiones.
 void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
     for (int canal = 0; canal < numCanales; canal++) {
-        if (flags_propios->flags[canal]) {
+        float modificadorVariacion = 0; // El modificador por defecto es 0, si las actualizaciones no son seguras, no se cambia
+
+        // Incluimos el modificador de sentido, que funciona como un override. Si el sentido es negativo, se invierten los flags
+        bool modificadorSentido = (sentido ? flags_propios->flags[canal] : !flags_propios->flags[canal]);
+
+        // La variable es redundante, pero sirve para que el código sea más claro
+        if (modificadorSentido) {
             // Primero comprobamos si el color está por debajo del margen superior, si no lo está, se corta
             if ((color[canal] > margenSuperior) || ((color[canal] + variacionColor[canal]) > margenSuperior)) {
                 color[canal] = margenSuperior;
                 flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
             } else {
                 // Si la actualización es segura, se lleva a cabo
-                color[canal] += variacionColor[canal];
+                modificadorVariacion = 1;
             }
         } else {
             // Primero comprobamos si el color está por encima del margen inferior, si no lo está, se corta
@@ -83,9 +89,13 @@ void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
                 flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
             } else {
                 // Si la actualización es segura, se lleva a cabo
-                color[canal] -= variacionColor[canal];
+                modificadorVariacion = -1;
             }
         }
+
+        // Las cláusulas de seguridad controlan el modificador, así que sabemos que la actualización es segura
+        // Extraemos el código común a las cláusulas, si en un futuro es quiere cambiar la operación, solo se toca aquí
+        color[canal] += (variacionColor[canal] * modificadorVariacion);
     }
 }
 
@@ -108,13 +118,16 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
                           << ", g: " << flags_ondas->flags[g]
                           << ", b: " << flags_ondas->flags[b]
               << ")" << std::endl;
+    bool sentido = yoffset > 0;
+    std::cout << "Override: " << (sentido ? "False" : "True") << std::endl;
 
-    actualizarColor(color, flags_ondas, yoffset > 0);
+    // Actualizamos el color con la función asociada, de manera que modularizamos el código
+    actualizarColor(color, flags_ondas, sentido);
 
     // Esta función ya aparece antes de lanzar la ventana para establecer el color base,
     // pero, aquí volvemos a llamarla cada vez que se detecta ele scroll para actualizar
     // el color de la ventana.
-    glClearColor(color[0], color[1], color[2], 1.0);
+    glClearColor(color[r], color[g], color[b], 1.0);
 
     // "Forzamos" la llamada al callback de refresco para poder dibujar el nuevo fondo
     window_refresh_callback(window);
