@@ -58,13 +58,18 @@ constexpr float margenInferior = 0, margenSuperior = 1;
 constexpr int r = 0, g = 1, b = 2, alfa = 3;
 constexpr int numCanales = 3;
 
+/** Este struct encapsula los flags que controlan el funcionamiento de los colores. Si queremos una transición
+ *  limpia entre los tres canales, necesitamos que los valores aumenten hasta el máximo y luego disminuyan hasta
+ *  el mínimo. Este comportamiento necesita alguna forma de registrar si el valor ahora debe subir o bajar.
+ */
 struct FlagsOndas {
     bool flags[3] = {true, true, true};
 };
 
-// Esta función implementa un comportamiento en ondas de los colores, con distintas longitudes, de manera
-// que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
-// múltiplos del mismo elemento para que coincidan en sus picos cada ciertas repeticiones.
+/** Esta función implementa un comportamiento en ondas de los colores, con distintas longitudes, de manera
+ *  que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
+ *  múltiplos del mismo elemento para que coincidan en sus picos cada ciertas repeticiones.
+ */
 void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
     for (int canal = 0; canal < numCanales; canal++) {
         float modificadorVariacion = 0; // El modificador por defecto es 0, si las actualizaciones no son seguras, no se cambia
