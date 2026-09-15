@@ -12,6 +12,8 @@ Los métodos asociados a las clases no se pueden usar como callbacks dado que de
 
 El segundo problema surge de cómo desacoplar el uso de esta clase. La existencia de los callbacks está resuelta, pero si queremos asociarlos a la ventana deberemos realizar cada una de las llamadas y acceder a los métodos de la clase en un código que no debería conocerlos. Podemos solucionar este problema haciendo que sea la propia clase la que enlace los métodos con la venta, pasando en su constructor un puntero a ésta.
 
+Finalmente, debería ser inicializado por el main cuando lance el sistema gráfico, dado que la clase contiene los callbacks de la ventana, y por lo tanto debe definirse al inicio.
+
 A continuación se propone un diseño de esta clase:
 
 ![ver carpeta de diagramas](diagramas/DiagramaUML.png)
