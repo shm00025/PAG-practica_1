@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+// ----------- FUNCIONES DEL GUIÓN -----------
 // - Esta función callback será llamada cuando GLFW produzca algún error
 void error_callback(int errno, const char *desc) {
     std::string aux(desc);
@@ -47,13 +48,50 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     }
 }
 
-// - Esta función callback será llamada cada vez que se mueva la rueda
-// del ratón sobre el área de dibujo OpenGL.
+
+
+// ----------- FUNCIONES PROPIAS -----------
+float variacionColor = 0.05;
+
+// Función callback para el scroll realizado con la rueda del ratón.
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     std::cout << "Movida la rueda del ratón " << xoffset
             << " Unidades en horizontal y " << yoffset
             << " unidades en vertical" << std::endl;
+
+    // Primero debemos obtener el color actual de la ventana para modificarlo
+    float color[4]; // Creamos un vector estático de flotantes para almacenar el color
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, color); // Consultamos el color a GL
+
+    std::cout << "Color actual: (" << color[0] << ", " << color[1] << ", " << color[2] << ")" << std::endl;
+
+    if (yoffset > 0) {
+        if (color[0] < 1) {
+            color[0] += variacionColor;
+        } else if (color[1] < 1) {
+            color[1] += variacionColor;
+        } else if (color[2] < 1) {
+            color[2] += variacionColor;
+        }
+    } else {
+        if (color[2] > 0) {
+            color[2] -= variacionColor;
+        } else if (color[1] > 0) {
+            color[1] -= variacionColor;
+        } else if (color[0] > 0) {
+            color[0] -= variacionColor;
+        }
+    }
+
+    // Esta función ya aparece antes de lanzar la ventana para establecer el color base,
+    // pero, aquí volvemos a llamarla cada vez que se detecta ele scroll para actualizar
+    // el color de la ventana.
+    glClearColor(color[0], color[1], color[2], 1.0);
+
+    // "Forzamos" la llamada al callback de refresco para poder dibujar el nuevo fondo
+    window_refresh_callback(window);
 }
+
 
 int main() {
     std::cout << "Starting Application PAG - Prueba 01" << std::endl;
