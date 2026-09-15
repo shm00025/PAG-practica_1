@@ -51,7 +51,43 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 
 
 // ----------- FUNCIONES PROPIAS -----------
-float variacionColor = 0.05;
+
+// Primero definimos las constantes que regulan la funcionalidad del callback
+constexpr float variacionColor[4] = {0.12, 0.06, 0.03};
+constexpr float margenInferior = 0, margenSuperior = 1;
+constexpr int r = 0, g = 1, b = 2, alfa = 3;
+constexpr int numCanales = 3;
+
+struct FlagsOndas {
+    bool flags[3] = {true, true, true};
+};
+
+// Esta función implementa un comportamiento en ondas de los colores, con distintas longitudes, de manera
+// que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
+// múltiplos del mismo elemento para que coincidan en sus picos cada ciertas repeticiones.
+void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
+    for (int canal = 0; canal < numCanales; canal++) {
+        if (flags_propios->flags[canal]) {
+            // Primero comprobamos si el color está por debajo del margen superior, si no lo está, se corta
+            if ((color[canal] > margenSuperior) || ((color[canal] + variacionColor[canal]) > margenSuperior)) {
+                color[canal] = margenSuperior;
+                flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
+            } else {
+                // Si la actualización es segura, se lleva a cabo
+                color[canal] += variacionColor[canal];
+            }
+        } else {
+            // Primero comprobamos si el color está por encima del margen inferior, si no lo está, se corta
+            if ((color[canal] < margenInferior) || ((color[canal] - variacionColor[canal]) < margenInferior)) {
+                color[canal] = margenInferior;
+                flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
+            } else {
+                // Si la actualización es segura, se lleva a cabo
+                color[canal] -= variacionColor[canal];
+            }
+        }
+    }
+}
 
 // Función callback para el scroll realizado con la rueda del ratón.
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
@@ -59,29 +95,21 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
             << " Unidades en horizontal y " << yoffset
             << " unidades en vertical" << std::endl;
 
-    // Primero debemos obtener el color actual de la ventana para modificarlo
+    // Primero. Debemos obtener el color actual de la ventana para modificarlo
     float color[4]; // Creamos un vector estático de flotantes para almacenar el color
     glGetFloatv(GL_COLOR_CLEAR_VALUE, color); // Consultamos el color a GL
 
-    std::cout << "Color actual: (" << color[0] << ", " << color[1] << ", " << color[2] << ")" << std::endl;
+    // Segundo. Obtenemos nuestros flags. Debemos hacer un cast a nuestro tipo dado que
+    // el user pointer es un puntero void
+    FlagsOndas* flags_ondas = (FlagsOndas*) glfwGetWindowUserPointer(window);
 
-    if (yoffset > 0) {
-        if (color[0] < 1) {
-            color[0] += variacionColor;
-        } else if (color[1] < 1) {
-            color[1] += variacionColor;
-        } else if (color[2] < 1) {
-            color[2] += variacionColor;
-        }
-    } else {
-        if (color[2] > 0) {
-            color[2] -= variacionColor;
-        } else if (color[1] > 0) {
-            color[1] -= variacionColor;
-        } else if (color[0] > 0) {
-            color[0] -= variacionColor;
-        }
-    }
+    std::cout << "Color actual: (" << color[r] << ", " << color[g] << ", " << color[b] << ")" << std::endl;
+    std::cout << "Flags ondas: (r: " << flags_ondas->flags[r]
+                          << ", g: " << flags_ondas->flags[g]
+                          << ", b: " << flags_ondas->flags[b]
+              << ")" << std::endl;
+
+    actualizarColor(color, flags_ondas, yoffset > 0);
 
     // Esta función ya aparece antes de lanzar la ventana para establecer el color base,
     // pero, aquí volvemos a llamarla cada vez que se detecta ele scroll para actualizar
@@ -125,6 +153,12 @@ int main() {
         glfwTerminate(); // - Liberamos los recursos que ocupaba GLFW.
         return -2;
     }
+
+
+    // Aprovechamos para indicar nuestros propios flags
+    FlagsOndas flags_ondas;
+    glfwSetWindowUserPointer(window, &flags_ondas);
+
 
     // - Hace que el contexto OpenGL asociado a la ventana que acabamos de crear pase a
     // ser el contexto actual de OpenGL para las siguientes llamadas a la biblioteca
