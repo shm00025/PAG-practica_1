@@ -1,6 +1,5 @@
 #include <iostream>
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "Renderer.h"
 
@@ -11,22 +10,10 @@ void error_callback(int errno, const char *desc) {
     std::cout << "Error de GLFW número " << errno << ": " << aux << std::endl;
 }
 
-// - Esta función callback será llamada cada vez que el área de dibujo
-// OpenGL deba ser redibujada.
-void window_refresh_callback(GLFWwindow *window) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // - GLFW usa un doble buffer para que no haya parpadeo. Esta orden
-    // intercambia el buffer back (que se ha estado dibujando) por el
-    // que se mostraba hasta ahora front. Debe ser la última orden de
-    // este callback
-    glfwSwapBuffers(window);
-    std::cout << "Refresh callback called" << std::endl;
-}
-
 // - Esta función callback será llamada cada vez que se cambie el tamaño
 // del área de dibujo OpenGL.
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
+    PAG::Renderer::getInstancia().redimensionar(width, height);
     std::cout << "Resize callback called" << std::endl;
 }
 
@@ -34,7 +21,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 // dirigida al área de dibujo OpenGL.
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        PAG::Renderer::getInstancia().cerrar_ventana(window, GLFW_TRUE);
     }
     std::cout << "Key callback called" << std::endl;
 }
@@ -49,7 +36,13 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     }
 }
 
+// ----------- FUNCIONES NUEVAS -----------
 
+void callbackRefrescoVentana ( GLFWwindow* ventana ) {
+    PAG::Renderer::getInstancia().refrescar();
+    glfwSwapBuffers (ventana);
+    std::cout << "Finaliza el callback de refresco" << std::endl;
+}
 
 // ----------- FUNCIONES PROPIAS -----------
 
@@ -136,15 +129,7 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     glClearColor(color[r], color[g], color[b], 1.0);
 
     // "Forzamos" la llamada al callback de refresco para poder dibujar el nuevo fondo
-    window_refresh_callback(window);
-}
-
-// ----------- FUNCIONES NUEVAS -----------
-
-void callbackRefrescoVentana ( GLFWwindow* ventana ) {
-    PAG::Renderer::getInstancia().refrescar();
-    glfwSwapBuffers (ventana);
-    std::cout << "Finaliza el callback de refresco" << std::endl;
+    callbackRefrescoVentana(window);
 }
 
 
@@ -191,7 +176,7 @@ int main() {
     // ser el contexto actual de OpenGL para las siguientes llamadas a la biblioteca
     glfwMakeContextCurrent(window);
     // - Ahora inicializamos GLAD.
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+    if (!PAG::Renderer::getInstancia().get_gladLoadGLLoader((void*) glfwGetProcAddress)) {
         std::cout << "GLAD initialization failed" << std::endl;
         glfwDestroyWindow(window); // - Liberamos los recursos que ocupaba GLFW.
         window = nullptr;
@@ -200,11 +185,11 @@ int main() {
     }
     // - Interrogamos a OpenGL para que nos informe de las propiedades del contexto
     // 3D construido.
-    std::cout << glGetString(GL_RENDERER) << std::endl
-            << glGetString(GL_VENDOR) << std::endl
-            << glGetString(GL_VERSION) << std::endl
-            << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-    std::cout << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    std::cout << glGetString(PAG::Renderer::getInstancia().get_gl_renderer()) << std::endl
+            << glGetString(PAG::Renderer::getInstancia().get_gl_vendor()) << std::endl
+            << glGetString(PAG::Renderer::getInstancia().get_gl_version()) << std::endl
+            << glGetString(PAG::Renderer::getInstancia().get_gl_shading_language_version()) << std::endl;
+    std::cout << glGetString(PAG::Renderer::getInstancia().get_gl_shading_language_version()) << std::endl;
     // - Registramos los callbacks que responderán a los eventos principales
     glfwSetWindowRefreshCallback(window, callbackRefrescoVentana);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);

@@ -14,7 +14,17 @@ namespace PAG {
     public:
         virtual ~Renderer ();
         static Renderer& getInstancia ();
+
         void refrescar ();
+        void redimensionar(int width, int height);
+        void cerrar_ventana(void *ventana, int valor);
+        void scroll();
+
+        int get_gladLoadGLLoader(void* procAddr);
+        float get_gl_renderer();
+        float get_gl_version();
+        float get_gl_vendor();
+        float get_gl_shading_language_version();
     };
 } // PAG
 

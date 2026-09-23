@@ -2,8 +2,11 @@
 // Created by Santi on 21/09/2026.
 //
 
+#include <glad/glad.h>
 #include <GL/gl.h>
 #include "Renderer.h"
+
+#include <GLFW/glfw3.h>
 
 namespace PAG {
     PAG::Renderer *PAG::Renderer::instancia = nullptr;
@@ -38,4 +41,25 @@ namespace PAG {
     void Renderer::refrescar() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+
+    void Renderer::redimensionar(int width, int height) {
+        glViewport(0, 0, width, height);
+    }
+
+    void Renderer::cerrar_ventana(void *ventana, int valor) {
+        glfwSetWindowShouldClose((GLFWwindow*)ventana, valor);
+    }
+
+    void Renderer::scroll() {
+
+    }
+
+    int Renderer::get_gladLoadGLLoader(void* procAddr) {
+        return gladLoadGLLoader((GLADloadproc) procAddr);
+    }
+
+    float Renderer::get_gl_renderer() { return GL_RENDERER; }
+    float Renderer::get_gl_version() { return GL_VERSION; }
+    float Renderer::get_gl_vendor() { return GL_VENDOR; }
+    float Renderer::get_gl_shading_language_version() { return GL_SHADING_LANGUAGE_VERSION; }
 } // PAG
