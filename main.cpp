@@ -2,6 +2,7 @@
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "Renderer.h"
 
 // ----------- FUNCIONES DEL GUIÓN -----------
 // - Esta función callback será llamada cuando GLFW produzca algún error
@@ -138,6 +139,14 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     window_refresh_callback(window);
 }
 
+// ----------- FUNCIONES NUEVAS -----------
+
+void callbackRefrescoVentana ( GLFWwindow* ventana ) {
+    PAG::Renderer::getInstancia().refrescar();
+    glfwSwapBuffers (ventana);
+    std::cout << "Finaliza el callback de refresco" << std::endl;
+}
+
 
 int main() {
     std::cout << "Starting Application PAG - Prueba 01" << std::endl;
@@ -197,7 +206,7 @@ int main() {
             << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     std::cout << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
     // - Registramos los callbacks que responderán a los eventos principales
-    glfwSetWindowRefreshCallback(window, window_refresh_callback);
+    glfwSetWindowRefreshCallback(window, callbackRefrescoVentana);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);

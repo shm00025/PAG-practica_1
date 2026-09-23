@@ -7,6 +7,14 @@
 
 namespace PAG {
     class Renderer {
+    private:
+        static Renderer *instancia;
+        Renderer();
+
+    public:
+        virtual ~Renderer ();
+        static Renderer& getInstancia ();
+        void refrescar ();
     };
 } // PAG
 
