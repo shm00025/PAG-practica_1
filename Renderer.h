@@ -7,7 +7,6 @@
 
 namespace PAG {
     class Renderer {
-    private:
         static Renderer *instancia;
         Renderer();
 

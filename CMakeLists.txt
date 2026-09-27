@@ -10,6 +10,8 @@ file(GLOB IMGUI_FILES imgui/src/*.cpp)
 add_executable(${PROJECT_NAME} ${MY_FILES}
                                ${GLAD_FILES}
                                ${IMGUI_FILES}
+        GUI.cpp
+        GUI.h
 )
 
 find_package(OpenGL REQUIRED)

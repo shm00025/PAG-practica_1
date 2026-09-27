@@ -1,6 +1,8 @@
 #include <iostream>
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
 #include <GLFW/glfw3.h>
+
+#include "GUI.h"
 #include "Renderer.h"
 
 // ----------- FUNCIONES DEL GUIÓN -----------
@@ -166,7 +168,6 @@ int main() {
         return -2;
     }
 
-
     // Aprovechamos para indicar nuestros propios flags
     FlagsOndas flags_ondas;
     glfwSetWindowUserPointer(window, &flags_ondas);
@@ -207,14 +208,21 @@ int main() {
     // - Ciclo de eventos de la aplicación. La condición de parada es que la
     // ventana principal deba cerrarse, por ejemplo, si el usuario pulsa el
     // botón de cerrar la ventana (la X).
+
+    // Creamos la interfaz mediante IMGUI
+    PAG::GUI::getInstancia().inicializar(window);
+
     while (!glfwWindowShouldClose(window)) {
         // - Obtiene y organiza los eventos pendientes, tales como pulsaciones
         // de teclas o de ratón, etc. Siempre al final de cada iteración del
         // ciclo de eventos y después de glfwSwapBuffers ( window );
         glfwPollEvents();
+
+        PAG::GUI::getInstancia().refrescar();
     }
     // - Una vez terminado el ciclo de eventos, liberar recursos, etc.
     std::cout << "Finishing application pag prueba" << std::endl;
+    PAG::GUI::getInstancia().destruir();
     glfwDestroyWindow(window); // - Cerramos y destruimos la ventana de la aplicación.
     window = nullptr;
     glfwTerminate(); // - Liberamos los recursos que ocupaba GLFW.

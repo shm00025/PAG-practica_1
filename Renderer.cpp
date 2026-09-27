@@ -27,7 +27,6 @@ namespace PAG {
     * Consulta del objeto único de la clase
     * @return La dirección de memoria del objeto
     */
-
     PAG::Renderer &PAG::Renderer::getInstancia() {
         // Lazy initialization: si aún no existe, lo crea
         if (!instancia) { instancia = new Renderer(); }
