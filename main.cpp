@@ -41,7 +41,10 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 // ----------- FUNCIONES NUEVAS -----------
 
 void callbackRefrescoVentana ( GLFWwindow* ventana ) {
+    // Refrescamos nuestros dos sistemas
     PAG::Renderer::getInstancia().refrescar();
+    PAG::GUI::getInstancia().refrescar();
+
     glfwSwapBuffers (ventana);
     std::cout << "Finaliza el callback de refresco" << std::endl;
 }
@@ -51,8 +54,6 @@ void callbackRefrescoVentana ( GLFWwindow* ventana ) {
 // Primero definimos las constantes que regulan la funcionalidad del callback
 constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
 constexpr float margenInferior = 0, margenSuperior = 1;
-constexpr int r = 0, g = 1, b = 2, alfa = 3;
-constexpr int numCanales = 3;
 
 /** Este struct encapsula los flags que controlan el funcionamiento de los colores. Si queremos una transición
  *  limpia entre los tres canales, necesitamos que los valores aumenten hasta el máximo y luego disminuyan hasta
@@ -129,9 +130,13 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     // pero, aquí volvemos a llamarla cada vez que se detecta ele scroll para actualizar
     // el color de la ventana.
     glClearColor(color[r], color[g], color[b], 1.0);
+}
 
-    // "Forzamos" la llamada al callback de refresco para poder dibujar el nuevo fondo
-    callbackRefrescoVentana(window);
+// Función callback para el scroll realizado con la rueda del ratón.
+void scroll_callback_simple(GLFWwindow *window, double xoffset, double yoffset) {
+    std::cout << "Movida la rueda del ratón " << xoffset
+            << " Unidades en horizontal y " << yoffset
+            << " unidades en vertical" << std::endl;
 }
 
 
@@ -196,7 +201,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetScrollCallback(window, scroll_callback_simple);
     // - Establecemos un gris medio como color con el que se borrará el
     // frame buffer.
     // No tiene por qué ejecutarse en cada paso por el ciclo de eventos.
@@ -218,7 +223,8 @@ int main() {
         // ciclo de eventos y después de glfwSwapBuffers ( window );
         glfwPollEvents();
 
-        PAG::GUI::getInstancia().refrescar();
+        // Invocamos el callback para que se redibuje la interfaz y permitir las animaciones
+        callbackRefrescoVentana(window);
     }
     // - Una vez terminado el ciclo de eventos, liberar recursos, etc.
     std::cout << "Finishing application pag prueba" << std::endl;

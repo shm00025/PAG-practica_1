@@ -6,6 +6,9 @@
 #define PRACTICA_1_GUI_H
 
 
+constexpr int r = 0, g = 1, b = 2, alfa = 3;
+constexpr int numCanales = 3;
+
 namespace PAG {
     class GUI {
         static GUI *instancia;
@@ -18,6 +21,8 @@ namespace PAG {
         void inicializar(void* ventana);
         void refrescar();
         void destruir();
+
+        void pintar_ventana_color();
     };
 };
 
