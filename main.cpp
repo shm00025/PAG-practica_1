@@ -9,14 +9,18 @@
 // - Esta función callback será llamada cuando GLFW produzca algún error
 void error_callback(int errno, const char *desc) {
     std::string aux(desc);
-    std::cout << "Error de GLFW número " << errno << ": " << aux << std::endl;
+    std::stringstream ss;
+    ss << "Error de GLFW número " << errno << ": " << aux << std::endl;
+    PAG::GUI::getInstancia().poner_linea(ss);
 }
 
 // - Esta función callback será llamada cada vez que se cambie el tamaño
 // del área de dibujo OpenGL.
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     PAG::Renderer::getInstancia().redimensionar(width, height);
-    std::cout << "Resize callback called" << std::endl;
+    std::stringstream ss;
+    ss << "Resize callback called" << std::endl;
+    PAG::GUI::getInstancia().poner_linea(ss);
 }
 
 // - Esta función callback será llamada cada vez que se pulse una tecla
@@ -25,16 +29,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         PAG::Renderer::getInstancia().cerrar_ventana(window, GLFW_TRUE);
     }
-    std::cout << "Key callback called" << std::endl;
+    std::stringstream ss;
+    ss << "Key callback called" << std::endl;
+    PAG::GUI::getInstancia().poner_linea(ss);
 }
 
 // - Esta función callback será llamada cada vez que se pulse algún botón
 // del ratón sobre el área de dibujo OpenGL.
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
     if (action == GLFW_PRESS) {
-        std::cout << "Pulsado el botón: " << button << std::endl;
+        std::stringstream ss;
+        ss << "Pulsado el botón: " << button << std::endl;
+        PAG::GUI::getInstancia().poner_linea(ss);
     } else if (action == GLFW_RELEASE) {
-        std::cout << "Soltado el botón: " << button << std::endl;
+        std::stringstream ss;
+        ss << "Soltado el botón: " << button << std::endl;
+        PAG::GUI::getInstancia().poner_linea(ss);
     }
 }
 
@@ -46,7 +56,6 @@ void callbackRefrescoVentana ( GLFWwindow* ventana ) {
     PAG::GUI::getInstancia().refrescar();
 
     glfwSwapBuffers (ventana);
-    std::cout << "Finaliza el callback de refresco" << std::endl;
 }
 
 // ----------- FUNCIONES PROPIAS -----------
@@ -134,9 +143,11 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 
 // Función callback para el scroll realizado con la rueda del ratón.
 void scroll_callback_simple(GLFWwindow *window, double xoffset, double yoffset) {
-    std::cout << "Movida la rueda del ratón " << xoffset
-            << " Unidades en horizontal y " << yoffset
-            << " unidades en vertical" << std::endl;
+    std::stringstream ss;
+    ss << "Movida la rueda del ratón " << xoffset
+       << " Unidades en horizontal y " << yoffset
+       << " unidades en vertical" << std::endl;
+    PAG::GUI::getInstancia().poner_linea(ss);
 }
 
 
