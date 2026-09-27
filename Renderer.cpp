@@ -4,9 +4,12 @@
 
 #include <glad/glad.h>
 #include <GL/gl.h>
-#include "Renderer.h"
-
+#include <cstdarg>
+#include <iostream>
 #include <GLFW/glfw3.h>
+
+#include "GUI.h"
+#include "Renderer.h"
 
 namespace PAG {
     PAG::Renderer *PAG::Renderer::instancia = nullptr;
@@ -46,14 +49,30 @@ namespace PAG {
     }
 
     void Renderer::cerrar_ventana(void *ventana, int valor) {
-        glfwSetWindowShouldClose((GLFWwindow*)ventana, valor);
+        glfwSetWindowShouldClose((GLFWwindow *) ventana, valor);
     }
 
     void Renderer::scroll() {
-
     }
 
-    int Renderer::get_gladLoadGLLoader(void* procAddr) {
+    void Renderer::wakeUp(WindowType t, ...) {
+        switch (t) {
+            case WindowType::Background: {
+                std::va_list args;
+                va_start(args, t);
+                colorFondo = *(va_arg(args, std::vector<float> *));
+                // Finalmente pintamos el fondo
+                glClearColor(colorFondo[r], colorFondo[g], colorFondo[b], 1.0);
+                va_end(args);
+                break;
+            }
+                // Procesar el resto de tipos de ventana
+        }
+        // Terminar cualquier otro procesamiento que sea necesario
+    }
+
+
+    int Renderer::get_gladLoadGLLoader(void *procAddr) {
         return gladLoadGLLoader((GLADloadproc) procAddr);
     }
 

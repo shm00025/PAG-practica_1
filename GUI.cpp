@@ -2,11 +2,12 @@
 // Created by Santi on 27/09/2026.
 //
 
-#include "GUI.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
+
+#include "GUI.h"
 
 namespace PAG {
     PAG::GUI *PAG::GUI::instancia = nullptr;
@@ -91,10 +92,15 @@ namespace PAG {
             flags |= ImGuiColorEditFlags_PickerHueWheel;
             flags |= ImGuiColorEditFlags_DisplayRGB;     // Override display mode
             flags |= ImGuiColorEditFlags_NoAlpha;
-            ImGui::ColorPicker4("MyColor##4", (float*)&color, flags, ref_color ? &ref_color_v.x : NULL);
+            if (ImGui::ColorPicker4("MyColor##4", (float*)&color, flags, ref_color ? &ref_color_v.x : NULL)) {this->fondo[r] = color.x;
+                // Si el color de fondo ha cambiado guardamos el color y avisamos a los listeners
+                this->fondo[r] = color.x;
+                this->fondo[g] = color.y;
+                this->fondo[b] = color.z;
+                this->fondo[alfa] = color.w;
 
-            // Finalmente pintamos el fondo
-            glClearColor(color.x, color.y, color.z, 1.0);
+                this->warnListeners();
+            }
         }
 
         // Si la ventana no está desplegada, Begin devuelve false
@@ -179,5 +185,15 @@ namespace PAG {
 
         // Si la ventana no está desplegada, Begin devuelve false
         ImGui::End ();
+    }
+
+    void GUI::addListener(Listener *listener) {
+        listeners.push_back (listener);
+    }
+
+    void GUI::warnListeners() {
+        for (Listener* listener: listeners) {
+            listener->wakeUp (WindowType::Background, &fondo);
+        }
     }
 }

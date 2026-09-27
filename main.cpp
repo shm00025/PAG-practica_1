@@ -227,6 +227,7 @@ int main() {
 
     // Creamos la interfaz mediante IMGUI
     PAG::GUI::getInstancia().inicializar(window);
+    PAG::GUI::getInstancia().addListener(&PAG::Renderer::getInstancia());
 
     while (!glfwWindowShouldClose(window)) {
         // - Obtiene y organiza los eventos pendientes, tales como pulsaciones

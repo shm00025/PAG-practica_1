@@ -5,10 +5,15 @@
 #ifndef PRACTICA_1_RENDERER_H
 #define PRACTICA_1_RENDERER_H
 
+#include <vector>
+
+#include "listener.h"
+
 namespace PAG {
-    class Renderer {
+    class Renderer : public Listener {
         static Renderer *instancia;
         Renderer();
+        std::vector<float> colorFondo = {0.6f, 0.6f, 0.6f, 1.0f};
 
     public:
         virtual ~Renderer ();
@@ -18,6 +23,9 @@ namespace PAG {
         void redimensionar(int width, int height);
         void cerrar_ventana(void *ventana, int valor);
         void scroll();
+
+        void wakeUp ( WindowType t, ... ) override;
+
 
         int get_gladLoadGLLoader(void* procAddr);
         float get_gl_renderer();
