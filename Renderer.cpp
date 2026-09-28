@@ -38,6 +38,23 @@ namespace PAG {
     }
 
     /**
+    * Método para incializar opengl
+    */
+    void Renderer::inicializar() {
+        // - Establecemos un gris medio como color con el que se borrará el
+        // frame buffer.
+        // No tiene por qué ejecutarse en cada paso por el ciclo de eventos.
+        glClearColor(0.6, 0.6, 0.6, 1.0);
+        // - Le decimos a OpenGL que tenga en cuenta la profundidad a la hora de
+        // dibujar.
+        // No tiene por qué ejecutarse en cada paso por el ciclo de eventos.
+        glEnable(GL_DEPTH_TEST);
+        // - Ciclo de eventos de la aplicación. La condición de parada es que la
+        // ventana principal deba cerrarse, por ejemplo, si el usuario pulsa el
+        // botón de cerrar la ventana (la X).
+    }
+
+    /**
     * Método para hacer el refresco de la escena
     */
     void Renderer::refrescar() {

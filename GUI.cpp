@@ -108,6 +108,7 @@ namespace PAG {
     }
 
     void GUI::ClearLog() {
+        Items.str("");
         Items.clear();
     }
 

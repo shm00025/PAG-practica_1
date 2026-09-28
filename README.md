@@ -18,3 +18,11 @@ A continuación se propone un diseño de esta clase:
 
 ![ver carpeta de diagramas](diagramas/DiagramaUML.png)
 [Enlace al diagrama en la carpeta](diagramas/DiagramaUML.png)
+---
+## Práctica 3 - Primer Triángulo
+
+---
+### &rarr; Ejercicio de reflexión
+El problema con la deformación del triángulo surge debido a la transofrmación de viewport. Tras el vertex shader, tenemos un espacio de recorte normalizado, y al aplicarle la transformación de viewport, estas coordenads normalizads se trasladan a coordenadas de pantalla. Si la pantalla cambia de coordenadas límite (Se redimensiona), el cálculo de las traslaciones también se ve afectado.
+
+Como propuestas de solución he pensado en alterar el espacio de visión de la cámara, para que este se adapte al viewport que representa, de manera que si la ventana se alarga, el espacio de visión crezca de manera proprocional, y se mantenga la dimensión alterada.

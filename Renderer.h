@@ -19,7 +19,8 @@ namespace PAG {
         virtual ~Renderer ();
         static Renderer& getInstancia ();
 
-        void refrescar ();
+        void inicializar();
+        void refrescar();
         void redimensionar(int width, int height);
         void cerrar_ventana(void *ventana, int valor);
         void scroll();
