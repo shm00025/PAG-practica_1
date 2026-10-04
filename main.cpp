@@ -2,7 +2,7 @@
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
 #include <GLFW/glfw3.h>
 
-#include "GUI.h"
+#include "GUI/GUI.h"
 #include "Renderer.h"
 
 // ----------- FUNCIONES DEL GUIÓN -----------
@@ -218,8 +218,7 @@ int main() {
     PAG::Renderer::getInstancia().inicializar();
 
     // Creamos la interfaz mediante IMGUI
-    PAG::GUI::getInstancia().inicializar(window);
-    PAG::GUI::getInstancia().addListener(&PAG::Renderer::getInstancia());
+    PAG::GUI::getInstancia().inicializar(window, &PAG::Renderer::getInstancia());
 
     while (!glfwWindowShouldClose(window)) {
         // - Obtiene y organiza los eventos pendientes, tales como pulsaciones

@@ -8,7 +8,7 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
 
-#include "GUI.h"
+#include "GUI/GUI.h"
 #include "Renderer.h"
 
 namespace PAG {
