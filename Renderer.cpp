@@ -11,8 +11,14 @@
 #include "GUI/GUI.h"
 #include "Renderer.h"
 
+#include <fstream>
+
 constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
 constexpr float margenInferior = 0, margenSuperior = 1;
+
+const std::string rutaFuenteGLSL = "../shaders/pag03-";
+const std::string sufijoVS = "vs.glsl";
+const std::string sufijoFS = "fs.glsl";
 
 /** Esta función implementa un comportamiento en ondas de los colores, con distintas longitudes, de manera
  *  que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
@@ -52,6 +58,70 @@ void actualizarColor(float *color, FlagsOndas *flags_propios, bool sentido) {
         // Las cláusulas de seguridad controlan el modificador, así que sabemos que la actualización es segura
         // Extraemos el código común a las cláusulas, si en un futuro es quiere cambiar la operación, solo se toca aquí
         color[canal] += (variacionColor[canal] * modificadorVariacion);
+    }
+}
+
+std::string cargarShader(TipoShader tipo) {
+    std::string terminacion, error;
+
+    // Controlamos el tipo de shader a cargar, que influye en el fichero a leer y el error a msotrar
+    switch (tipo) {
+        case VertexShader:
+            terminacion = sufijoVS;
+            error = "[error]: Error al crear el vertex shader, no se puede abrir el archivo.";
+            break;
+
+        case FragmentShader:
+            terminacion = sufijoFS;
+            error = "[error]: Error al crear el fragment shader, no se puede abrir el archivo.";
+            break;
+
+        default:
+            return nullptr;
+    }
+
+    // Abrimos y leemos el fichero, si hay un error, lanzamos excepción
+    std::ifstream archivoShader;
+    archivoShader.open(rutaFuenteGLSL + terminacion);
+    if (!archivoShader.is_open()) throw std::runtime_error(error);
+
+    std::stringstream streamShader;
+    streamShader << archivoShader.rdbuf();
+
+    // Cerramos el fichero y devolvemos el código fuente
+    archivoShader.close();
+    return streamShader.str();
+}
+
+void consultarCompilacion(GLint id, bool isShader) {
+    GLint resultado = 0;
+    std::string mensaje;
+    if (isShader) {
+        glGetShaderiv(id, GL_COMPILE_STATUS, &resultado);
+        mensaje = "[error]: Error indeterminado al compilar el shader.";
+    } else {
+        glGetProgramiv (id, GL_LINK_STATUS, &resultado);
+        mensaje = "[error]: Error indeterminado al enlazar los shaders.";
+    }
+
+    if (resultado == GL_FALSE) {
+        /* Ha habido un error en la compilación.
+          Para saber qué ha pasado, tenemos que recuperar el mensaje de error de
+          OpenGL */
+        GLint tamMsj = 0;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &tamMsj);
+
+        if (tamMsj > 0) {
+            GLchar* mensajeFormatoC = new GLchar[tamMsj];
+            GLint datosEscritos = 0;
+            glGetShaderInfoLog(id, tamMsj, &datosEscritos
+                                 , mensajeFormatoC);
+            mensaje.assign(mensajeFormatoC);
+            delete[] mensajeFormatoC;
+            mensajeFormatoC = nullptr;
+        }
+
+        throw std::runtime_error(mensaje);
     }
 }
 
@@ -103,7 +173,7 @@ namespace PAG {
     * Método para incializar opengl
     */
     void Renderer::inicializar() {
-        glClearColor(0.6, 0.6, 0.6, 1.0);
+        glClearColor(this->colorFondo[r], this->colorFondo[g], this->colorFondo[b], this->colorFondo[alfa]);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_MULTISAMPLE);
     }
@@ -198,30 +268,38 @@ namespace PAG {
     * @note No se incluye ninguna comprobación de errores
     */
     void Renderer::creaShaderProgram() {
-        std::string miVertexShader =
-                "#version 410\n"
-                "layout (location = 0) in vec3 posicion;\n"
-                "void main ()\n"
-                "{ gl_Position = vec4 ( posicion, 1 );\n"
-                "}\n";
-        std::string miFragmentShader =
-                "#version 410\n"
-                "out vec4 colorFragmento;\n"
-                "void main ()\n"
-                "{ colorFragmento = vec4 ( 1.0, .4, .2, 1.0 );\n"
-                "}\n";
-        idVS = glCreateShader(GL_VERTEX_SHADER);
-        const GLchar *fuenteVS = miVertexShader.c_str();
-        glShaderSource(idVS, 1, &fuenteVS, nullptr);
-        glCompileShader(idVS);
-        idFS = glCreateShader(GL_FRAGMENT_SHADER);
-        const GLchar *fuenteFS = miFragmentShader.c_str();
-        glShaderSource(idFS, 1, &fuenteFS, nullptr);
-        glCompileShader(idFS);
-        idSP = glCreateProgram();
-        glAttachShader(idSP, idVS);
-        glAttachShader(idSP, idFS);
-        glLinkProgram(idSP);
+        std::string codigoFuenteShader;
+
+        try {
+            // Creamos el vertex shader
+            idVS = glCreateShader(GL_VERTEX_SHADER);
+            if (idVS == 0 ) throw std::runtime_error("[error]: Error al crear el vertex shader, identificador nulo.");
+            codigoFuenteShader = cargarShader(VertexShader);
+            const GLchar *fuenteVS = codigoFuenteShader.c_str();
+            glShaderSource(idVS, 1, &fuenteVS, nullptr);
+            glCompileShader(idVS);
+            consultarCompilacion(idVS, true);
+
+            idFS = glCreateShader(GL_FRAGMENT_SHADER);
+            if (idFS == 0 ) throw std::runtime_error("[error]: Error al crear el fragment shader, identificador nulo.");
+            codigoFuenteShader = cargarShader(FragmentShader);
+            const GLchar *fuenteFS = codigoFuenteShader.c_str();
+            glShaderSource(idFS, 1, &fuenteFS, nullptr);
+            glCompileShader(idFS);
+            consultarCompilacion(idFS, true);
+
+            // Creamos el programa que contiene los shaders
+            idSP = glCreateProgram();
+            if (idSP == 0 ) throw std::runtime_error("[error]: Error al crear el shader program, identificador nulo.");
+            glAttachShader(idSP, idVS);
+            glAttachShader(idSP, idFS);
+            glLinkProgram(idSP);
+            consultarCompilacion(idSP, false);
+        } catch (const std::exception& e) {
+            std::string salida = e.what();
+            salida.append("\n");
+            throw std::runtime_error(salida);
+        }
     }
 
     /**

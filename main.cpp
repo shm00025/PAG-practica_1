@@ -137,13 +137,20 @@ int main() {
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    // Inicializamos OpenGL
-    PAG::Renderer::getInstancia().inicializar();
-    PAG::Renderer::getInstancia().creaShaderProgram();
-    PAG::Renderer::getInstancia().creaModelo();
-
     // Creamos la interfaz mediante IMGUI
     PAG::GUI::getInstancia().inicializar(window, &PAG::Renderer::getInstancia());
+
+    // Inicializamos OpenGL
+    try {
+        PAG::Renderer::getInstancia().inicializar();
+        PAG::Renderer::getInstancia().creaShaderProgram();
+        PAG::Renderer::getInstancia().creaModelo();
+    } catch (const std::exception& e) {
+        // Capturamos cualquier posible error y lo mostramos en la consola de GUI
+        std::stringstream ss;
+        ss << e.what();
+        PAG::GUI::getInstancia().poner_linea(ss);
+    }
 
     while (!glfwWindowShouldClose(window)) {
         // - Obtiene y organiza los eventos pendientes, tales como pulsaciones

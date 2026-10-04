@@ -17,6 +17,8 @@ struct FlagsOndas {
     bool flags[3] = {true, true, true};
 };
 
+enum TipoShader {VertexShader, FragmentShader};
+
 namespace PAG {
     class Renderer : public Listener {
         static Renderer *instancia;
