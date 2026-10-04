@@ -312,14 +312,58 @@ namespace PAG {
             .5, -.5, 0,
             .0, .5, 0
         };
+        GLfloat colores[] = {
+            1.0, 0.6, 0.8,
+            0.2, 1.0, 0.2,
+            0.0, 0.0, 0.0
+        };
         GLuint indices[] = {0, 1, 2};
+
+        // Creamos y activamos el VAO
         glGenVertexArrays(1, &idVAO);
         glBindVertexArray(idVAO);
+
+        // Creamos y activamos el VBO no entrelazado
+        /*
+        // Generamos el primer VBO, el de los vértices
         glGenBuffers(1, &idVBO);
         glBindBuffer(GL_ARRAY_BUFFER, idVBO);
-        glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+        // Lo activamos y le damos las dimensiones de los datos
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+
+        // Generamos el segundo VBO, el de los colores
+        glGenBuffers(1, &idVBOColor);
+        glBindBuffer(GL_ARRAY_BUFFER, idVBOColor);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(colores), colores, GL_STATIC_DRAW);
+
+        // Lo activamos y le damos las dimensiones de los datos
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+        */
+
+        // Creamos y activamos el VBO entrelazado
+        GLfloat verticesConColor[] = {
+            -.5, -.5, 0, 1.0, 0.6, 0.8,
+            .5, -.5, 0, 0.2, 1.0, 0.2,
+            .0, .5, 0, 0.0, 0.0, 0.0
+        };
+        // Generamos el VBO para los datos entrelazados
+        glGenBuffers(1, &idVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, idVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verticesConColor), verticesConColor, GL_STATIC_DRAW);
+
+        // Activamos el atributo de los vértices e indicamos que es el primero y que tiene un paso de tamaño 6
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
+
+        // Activamos el atributo de los colores e indicamos que es el segundo, que empieza en la tercera posición y que tiene un paso de tamaño 6
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+        // Creamos y activamos el IBO
         glGenBuffers(1, &idIBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
