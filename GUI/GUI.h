@@ -8,25 +8,21 @@
 #include <iosfwd>
 #include <sstream>
 #include <vector>
+#include <memory>
 
-#include "listener.h"
+#include "../listener.h"
+#include "VentanaGUI.h"
 
-
-constexpr int r = 0, g = 1, b = 2, alfa = 3;
-constexpr int numCanales = 3;
 
 namespace PAG {
     class GUI {
         static GUI *instancia;
         GUI();
 
-        std::stringstream Items;
-        void ClearLog();
-
+        WindowType tipoVentana;
         std::vector<Listener*> listeners;
 
-        bool necesarioPintar = true;
-        std::vector<float> fondo = {0.0f, 0.0f, 0.0f, 0.0f};
+        std::vector<std::unique_ptr<VentanaGUI>> ventanas;
 
     public:
         virtual ~GUI();
@@ -34,15 +30,11 @@ namespace PAG {
 
         void poner_linea(std::stringstream &linea);
 
-        void addListener(Listener *listener);
-        void warnListeners();
-
-        void inicializar(void* ventana);
+        void inicializar(void* ventana, Listener* renderer);
         void refrescar();
         void destruir();
 
-        void pintar_ventana_color();
-        void pintar_consola();
+        virtual void warnListeners(const char *cadena);
     };
 };
 
