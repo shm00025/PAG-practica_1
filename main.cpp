@@ -139,6 +139,8 @@ int main() {
 
     // Inicializamos OpenGL
     PAG::Renderer::getInstancia().inicializar();
+    PAG::Renderer::getInstancia().creaShaderProgram();
+    PAG::Renderer::getInstancia().creaModelo();
 
     // Creamos la interfaz mediante IMGUI
     PAG::GUI::getInstancia().inicializar(window, &PAG::Renderer::getInstancia());

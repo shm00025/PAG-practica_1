@@ -18,9 +18,10 @@ constexpr float margenInferior = 0, margenSuperior = 1;
  *  que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
  *  múltiplos del mismo elemento para que coincidan en sus picos cada ciertas repeticiones.
  */
-void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
+void actualizarColor(float *color, FlagsOndas *flags_propios, bool sentido) {
     for (int canal = 0; canal < numCanales; canal++) {
-        float modificadorVariacion = 0; // El modificador por defecto es 0, si las actualizaciones no son seguras, no se cambia
+        float modificadorVariacion = 0;
+        // El modificador por defecto es 0, si las actualizaciones no son seguras, no se cambia
 
         // Incluimos el modificador de sentido, que funciona como un override. Si el sentido es negativo, se invierten los flags
         bool modificadorSentido = (sentido ? flags_propios->flags[canal] : !flags_propios->flags[canal]);
@@ -30,7 +31,8 @@ void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
             // Primero comprobamos si el color está por debajo del margen superior, si no lo está, se corta
             if ((color[canal] > margenSuperior) || ((color[canal] + variacionColor[canal]) > margenSuperior)) {
                 color[canal] = margenSuperior;
-                flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
+                flags_propios->flags[canal] = !flags_propios->flags[canal];
+                // Invertimos el flag, hemos llegado a un límite
             } else {
                 // Si la actualización es segura, se lleva a cabo
                 modificadorVariacion = 1;
@@ -39,7 +41,8 @@ void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
             // Primero comprobamos si el color está por encima del margen inferior, si no lo está, se corta
             if ((color[canal] < margenInferior) || ((color[canal] - variacionColor[canal]) < margenInferior)) {
                 color[canal] = margenInferior;
-                flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
+                flags_propios->flags[canal] = !flags_propios->flags[canal];
+                // Invertimos el flag, hemos llegado a un límite
             } else {
                 // Si la actualización es segura, se lleva a cabo
                 modificadorVariacion = -1;
@@ -65,6 +68,24 @@ namespace PAG {
     * Destructor
     */
     Renderer::~Renderer() {
+        if (idVS != 0) {
+            glDeleteShader(idVS);
+        }
+        if (idFS != 0) {
+            glDeleteShader(idFS);
+        }
+        if (idSP != 0) {
+            glDeleteProgram(idSP);
+        }
+        if (idVBO != 0) {
+            glDeleteBuffers(1, &idVBO);
+        }
+        if (idIBO != 0) {
+            glDeleteBuffers(1, &idIBO);
+        }
+        if (idVAO != 0) {
+            glDeleteVertexArrays(1, &idVAO);
+        }
     }
 
     /**
@@ -82,17 +103,9 @@ namespace PAG {
     * Método para incializar opengl
     */
     void Renderer::inicializar() {
-        // - Establecemos un gris medio como color con el que se borrará el
-        // frame buffer.
-        // No tiene por qué ejecutarse en cada paso por el ciclo de eventos.
         glClearColor(0.6, 0.6, 0.6, 1.0);
-        // - Le decimos a OpenGL que tenga en cuenta la profundidad a la hora de
-        // dibujar.
-        // No tiene por qué ejecutarse en cada paso por el ciclo de eventos.
         glEnable(GL_DEPTH_TEST);
-        // - Ciclo de eventos de la aplicación. La condición de parada es que la
-        // ventana principal deba cerrarse, por ejemplo, si el usuario pulsa el
-        // botón de cerrar la ventana (la X).
+        glEnable(GL_MULTISAMPLE);
     }
 
     /**
@@ -100,6 +113,11 @@ namespace PAG {
     */
     void Renderer::refrescar() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glUseProgram(idSP);
+        glBindVertexArray(idVAO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
     }
 
     void Renderer::redimensionar(int width, int height) {
@@ -110,20 +128,20 @@ namespace PAG {
         glfwSetWindowShouldClose((GLFWwindow *) ventana, valor);
     }
 
-    void Renderer::scroll(void* flagsOndas, double xoffset, double yoffset) {
+    void Renderer::scroll(void *flagsOndas, double xoffset, double yoffset) {
         // Primero. Debemos obtener el color actual de la ventana para modificarlo
         float color[4]; // Creamos un vector estático de flotantes para almacenar el color
         glGetFloatv(GL_COLOR_CLEAR_VALUE, color); // Consultamos el color a GL
 
         // Segundo. Obtenemos nuestros flags. Debemos hacer un cast a nuestro tipo dado que
         // el user pointer es un puntero void
-        FlagsOndas* flags_ondas = (FlagsOndas*) flagsOndas;
+        FlagsOndas *flags_ondas = (FlagsOndas *) flagsOndas;
 
         std::cout << "Color actual: (" << color[r] << ", " << color[g] << ", " << color[b] << ")" << std::endl;
         std::cout << "Flags ondas: (r: " << flags_ondas->flags[r]
-                              << ", g: " << flags_ondas->flags[g]
-                              << ", b: " << flags_ondas->flags[b]
-                  << ")" << std::endl;
+                << ", g: " << flags_ondas->flags[g]
+                << ", b: " << flags_ondas->flags[b]
+                << ")" << std::endl;
         bool sentido = yoffset > 0;
         std::cout << "Override: " << (sentido ? "False" : "True") << std::endl;
 
@@ -145,7 +163,7 @@ namespace PAG {
     }
 
     void Renderer::addListener(Listener *listener) {
-        listeners.push_back (listener);
+        listeners.push_back(listener);
     };
 
     void Renderer::warnListeners() {
@@ -174,6 +192,61 @@ namespace PAG {
     int Renderer::get_gladLoadGLLoader(void *procAddr) {
         return gladLoadGLLoader((GLADloadproc) procAddr);
     }
+
+    /**
+    * Método para crear, compilar y enlazar el shader program
+    * @note No se incluye ninguna comprobación de errores
+    */
+    void Renderer::creaShaderProgram() {
+        std::string miVertexShader =
+                "#version 410\n"
+                "layout (location = 0) in vec3 posicion;\n"
+                "void main ()\n"
+                "{ gl_Position = vec4 ( posicion, 1 );\n"
+                "}\n";
+        std::string miFragmentShader =
+                "#version 410\n"
+                "out vec4 colorFragmento;\n"
+                "void main ()\n"
+                "{ colorFragmento = vec4 ( 1.0, .4, .2, 1.0 );\n"
+                "}\n";
+        idVS = glCreateShader(GL_VERTEX_SHADER);
+        const GLchar *fuenteVS = miVertexShader.c_str();
+        glShaderSource(idVS, 1, &fuenteVS, nullptr);
+        glCompileShader(idVS);
+        idFS = glCreateShader(GL_FRAGMENT_SHADER);
+        const GLchar *fuenteFS = miFragmentShader.c_str();
+        glShaderSource(idFS, 1, &fuenteFS, nullptr);
+        glCompileShader(idFS);
+        idSP = glCreateProgram();
+        glAttachShader(idSP, idVS);
+        glAttachShader(idSP, idFS);
+        glLinkProgram(idSP);
+    }
+
+    /**
+    * Método para crear el VAO para el modelo a renderizar
+    * @note No se incluye ninguna comprobación de errores
+    */
+    void Renderer::creaModelo() {
+        GLfloat vertices[] = {
+            -.5, -.5, 0,
+            .5, -.5, 0,
+            .0, .5, 0
+        };
+        GLuint indices[] = {0, 1, 2};
+        glGenVertexArrays(1, &idVAO);
+        glBindVertexArray(idVAO);
+        glGenBuffers(1, &idVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, idVBO);
+        glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+        glEnableVertexAttribArray(0);
+        glGenBuffers(1, &idIBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
+    }
+
 
     float Renderer::get_gl_renderer() { return GL_RENDERER; }
     float Renderer::get_gl_version() { return GL_VERSION; }

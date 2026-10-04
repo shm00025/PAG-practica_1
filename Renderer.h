@@ -26,12 +26,21 @@ namespace PAG {
         WindowType tipoVentana;
         std::vector<Listener*> listeners;
 
+        // Render
+        GLuint idVS = 0; // Identificador del vertex shader
+        GLuint idFS = 0; // Identificador del fragment shader
+        GLuint idSP = 0; // Identificador del shader program
+        GLuint idVAO = 0; // Identificador del vertex array object
+        GLuint idVBO = 0; // Identificador del vertex buffer object
+        GLuint idIBO = 0; // Identificador del index buffer object
+
     public:
         virtual ~Renderer ();
         static Renderer& getInstancia ();
 
         void inicializar();
         void refrescar();
+
         void redimensionar(int width, int height);
         void cerrar_ventana(void *ventana, int valor);
         void scroll(void* flagsOndas, double xoffset, double yoffset);
@@ -39,6 +48,9 @@ namespace PAG {
         void addListener(Listener *listener);
         void warnListeners();
         void wakeUp ( WindowType t, ... ) override;
+
+        void creaShaderProgram();
+        void creaModelo();
 
         int get_gladLoadGLLoader(void* procAddr);
         float get_gl_renderer();
