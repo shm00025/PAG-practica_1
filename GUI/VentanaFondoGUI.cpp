@@ -56,7 +56,6 @@ namespace PAG {
     }
 
     void VentanaFondoGUI::wakeUp(WindowType t, ...) {
-        std::cout << "HOLA SOY EL FONDO"  << std::endl;
         switch (t) {
             case WindowType::Renderer: {
                 std::va_list args;
