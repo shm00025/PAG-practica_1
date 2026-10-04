@@ -11,13 +11,54 @@
 #include "GUI/GUI.h"
 #include "Renderer.h"
 
+constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
+constexpr float margenInferior = 0, margenSuperior = 1;
+
+/** Esta función implementa un comportamiento en ondas de los colores, con distintas longitudes, de manera
+ *  que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
+ *  múltiplos del mismo elemento para que coincidan en sus picos cada ciertas repeticiones.
+ */
+void actualizarColor(float *color, FlagsOndas* flags_propios, bool sentido) {
+    for (int canal = 0; canal < numCanales; canal++) {
+        float modificadorVariacion = 0; // El modificador por defecto es 0, si las actualizaciones no son seguras, no se cambia
+
+        // Incluimos el modificador de sentido, que funciona como un override. Si el sentido es negativo, se invierten los flags
+        bool modificadorSentido = (sentido ? flags_propios->flags[canal] : !flags_propios->flags[canal]);
+
+        // La variable es redundante, pero sirve para que el código sea más claro
+        if (modificadorSentido) {
+            // Primero comprobamos si el color está por debajo del margen superior, si no lo está, se corta
+            if ((color[canal] > margenSuperior) || ((color[canal] + variacionColor[canal]) > margenSuperior)) {
+                color[canal] = margenSuperior;
+                flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
+            } else {
+                // Si la actualización es segura, se lleva a cabo
+                modificadorVariacion = 1;
+            }
+        } else {
+            // Primero comprobamos si el color está por encima del margen inferior, si no lo está, se corta
+            if ((color[canal] < margenInferior) || ((color[canal] - variacionColor[canal]) < margenInferior)) {
+                color[canal] = margenInferior;
+                flags_propios->flags[canal] = !flags_propios->flags[canal]; // Invertimos el flag, hemos llegado a un límite
+            } else {
+                // Si la actualización es segura, se lleva a cabo
+                modificadorVariacion = -1;
+            }
+        }
+
+        // Las cláusulas de seguridad controlan el modificador, así que sabemos que la actualización es segura
+        // Extraemos el código común a las cláusulas, si en un futuro es quiere cambiar la operación, solo se toca aquí
+        color[canal] += (variacionColor[canal] * modificadorVariacion);
+    }
+}
+
 namespace PAG {
     PAG::Renderer *PAG::Renderer::instancia = nullptr;
 
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer) {
     }
 
     /**
@@ -69,7 +110,48 @@ namespace PAG {
         glfwSetWindowShouldClose((GLFWwindow *) ventana, valor);
     }
 
-    void Renderer::scroll() {
+    void Renderer::scroll(void* flagsOndas, double xoffset, double yoffset) {
+        // Primero. Debemos obtener el color actual de la ventana para modificarlo
+        float color[4]; // Creamos un vector estático de flotantes para almacenar el color
+        glGetFloatv(GL_COLOR_CLEAR_VALUE, color); // Consultamos el color a GL
+
+        // Segundo. Obtenemos nuestros flags. Debemos hacer un cast a nuestro tipo dado que
+        // el user pointer es un puntero void
+        FlagsOndas* flags_ondas = (FlagsOndas*) flagsOndas;
+
+        std::cout << "Color actual: (" << color[r] << ", " << color[g] << ", " << color[b] << ")" << std::endl;
+        std::cout << "Flags ondas: (r: " << flags_ondas->flags[r]
+                              << ", g: " << flags_ondas->flags[g]
+                              << ", b: " << flags_ondas->flags[b]
+                  << ")" << std::endl;
+        bool sentido = yoffset > 0;
+        std::cout << "Override: " << (sentido ? "False" : "True") << std::endl;
+
+        // Actualizamos el color con la función asociada, de manera que modularizamos el código
+        actualizarColor(color, flags_ondas, sentido);
+
+        // Esta función ya aparece antes de lanzar la ventana para establecer el color base,
+        // pero, aquí volvemos a llamarla cada vez que se detecta ele scroll para actualizar
+        // el color de la ventana.
+        glClearColor(color[r], color[g], color[b], 1.0);
+
+        // Actualizamos el color de fondo
+        this->colorFondo[r] = color[r];
+        this->colorFondo[g] = color[g];
+        this->colorFondo[b] = color[b];
+
+        // Avisamos a nuestros listeners
+        warnListeners();
+    }
+
+    void Renderer::addListener(Listener *listener) {
+        listeners.push_back (listener);
+    };
+
+    void Renderer::warnListeners() {
+        for (Listener *listener: listeners) {
+            listener->wakeUp(this->tipoVentana, &colorFondo);
+        }
     }
 
     void Renderer::wakeUp(WindowType t, ...) {

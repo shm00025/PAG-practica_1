@@ -7,9 +7,6 @@
 #include <cstdarg>
 
 #include "VentanaConsolaGUI.h"
-
-#include <iostream>
-
 #include "../listener.h"
 
 namespace PAG {

@@ -9,7 +9,7 @@
 
 
 namespace PAG {
-    class VentanaFondoGUI : public VentanaGUI {
+    class VentanaFondoGUI : public VentanaGUI, public Listener {
         bool necesarioPintar = true;
         std::vector<float> fondo = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -20,6 +20,7 @@ namespace PAG {
         void dibujar() override;
 
         void warnListeners() override;
+        void wakeUp(WindowType t, ...) override;
     };
 }
 

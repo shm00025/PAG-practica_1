@@ -4,8 +4,13 @@
 
 #include <imgui.h>
 #include <GLFW/glfw3.h>
+#include <cstdarg>
 
 #include "VentanaFondoGUI.h"
+
+#include <iostream>
+#include <ostream>
+
 #include "../listener.h"
 
 namespace PAG {
@@ -21,19 +26,14 @@ namespace PAG {
             // La ventana está desplegada
             ImGui::SetWindowFontScale(1.0f); // Escalamos el texto si fuera necesario
 
-            // Pintamos los controles
-            static ImGuiColorEditFlags base_flags = ImGuiColorEditFlags_None;
-            static ImVec4 color = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
+            ImVec4 color = ImVec4(this->fondo[r], this->fondo[g], this->fondo[b], 1.0f);
 
-            static bool ref_color = false;
-            static ImVec4 ref_color_v(1.0f, 0.0f, 1.0f, 0.5f);
-            static ImGuiColorEditFlags color_picker_flags = ImGuiColorEditFlags_AlphaBar;
-
-            ImGuiColorEditFlags flags = base_flags | color_picker_flags;
+            ImGuiColorEditFlags flags = ImGuiColorEditFlags_AlphaBar;
             flags |= ImGuiColorEditFlags_PickerHueWheel;
             flags |= ImGuiColorEditFlags_DisplayRGB; // Override display mode
             flags |= ImGuiColorEditFlags_NoAlpha;
-            if (ImGui::ColorPicker4("MyColor##4", (float *) &color, flags, ref_color ? &ref_color_v.x : NULL)) {
+
+            if (ImGui::ColorPicker4("MyColor##4", (float *) &color, flags)) {
                 this->fondo[r] = color.x;
                 // Si el color de fondo ha cambiado guardamos el color y avisamos a los listeners
                 this->fondo[r] = color.x;
@@ -53,5 +53,23 @@ namespace PAG {
         for (Listener *listener: listeners) {
             listener->wakeUp(this->tipoVentana, &fondo);
         }
+    }
+
+    void VentanaFondoGUI::wakeUp(WindowType t, ...) {
+        std::cout << "HOLA SOY EL FONDO"  << std::endl;
+        switch (t) {
+            case WindowType::Renderer: {
+                std::va_list args;
+                va_start(args, t);
+
+                const std::vector<float> colorFondo = *(va_arg(args, std::vector<float> *));
+                this->fondo = colorFondo;
+
+                va_end(args);
+                break;
+            }
+                // Procesar el resto de tipos de ventana
+        }
+        // Terminar cualquier otro procesamiento que sea necesario
     }
 }
