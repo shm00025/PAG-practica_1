@@ -252,6 +252,13 @@ namespace PAG {
                 va_end(args);
                 break;
             }
+            case WindowType::ShaderSelector: {
+                std::va_list args;
+                va_start(args, t);
+                // todo
+                va_end(args);
+                break;
+            }
                 // Procesar el resto de tipos de ventana
         }
         // Terminar cualquier otro procesamiento que sea necesario

@@ -11,6 +11,7 @@
 
 #include "VentanaConsolaGUI.h"
 #include "VentanaFondoGUI.h"
+#include "VentanaSelectorShaderGUI.h"
 #include "VentanaTamTexto.h"
 #include "../Renderer.h"
 
@@ -71,6 +72,10 @@ namespace PAG {
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         // Metemos el fondo como listener del renderer (Listeners circulares)
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()));
+
+        // Ventana para la elección del shader
+        ventanas.push_back(std::make_unique<VentanaSelectorShaderGUI>(lista));
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
         // Slider para el tamaño del texto
         ventanas.push_back(std::make_unique<VentanaTamTexto>(listTexto));

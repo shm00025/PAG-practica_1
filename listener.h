@@ -6,7 +6,7 @@
 #define PRACTICA_1_LISTENER_H
 
 // Indicamos los tipos de ventana que tenemos actualmente en el sistema
-enum WindowType {Renderer, General, Background, Console, TextSize};
+enum WindowType {Renderer, General, Background, Console, TextSize, ShaderSelector};
 
 namespace PAG {
     class Listener

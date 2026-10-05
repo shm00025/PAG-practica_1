@@ -20,6 +20,8 @@ add_executable(${PROJECT_NAME} ${MY_FILES}
         GUI/VentanaConsolaGUI.h
         GUI/VentanaTamTexto.cpp
         GUI/VentanaTamTexto.h
+        GUI/VentanaSelectorShaderGUI.cpp
+        GUI/VentanaSelectorShaderGUI.h
 )
 
 find_package(OpenGL REQUIRED)

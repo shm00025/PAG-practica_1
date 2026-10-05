@@ -3,14 +3,9 @@
 //
 
 #include <imgui.h>
-#include <GLFW/glfw3.h>
 #include <cstdarg>
 
 #include "VentanaFondoGUI.h"
-
-#include <iostream>
-#include <ostream>
-
 #include "../listener.h"
 
 namespace PAG {
@@ -22,7 +17,7 @@ namespace PAG {
         // Posición de la ventana
         ImGui::SetNextWindowPos(ImVec2(400, 10), ImGuiCond_Once);
 
-        if (ImGui::Begin("Paleta")) {
+        if (ImGui::Begin("Paleta", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada
             ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
 

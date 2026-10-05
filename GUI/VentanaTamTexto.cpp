@@ -16,6 +16,8 @@ namespace PAG {
         ImGui::SetNextWindowPos(ImVec2(400, 10), ImGuiCond_Once);
 
         if (ImGui::Begin("TamTexto")) {
+            ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
+
             ImGui::SliderFloat("Escala", &this->tamTexto, 0.01f, 5.0f, "%.3f");
 
             warnListeners();
