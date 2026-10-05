@@ -94,23 +94,22 @@ std::string cargarShader(TipoShader tipo) {
 }
 
 void consultarCompilacion(GLint id, bool isShader) {
-    GLint resultado = 0;
+    GLint resultado = 0, tamMsj = 0;
     std::string mensaje;
     if (isShader) {
         glGetShaderiv(id, GL_COMPILE_STATUS, &resultado);
         mensaje = "[error]: Error indeterminado al compilar el shader.";
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &tamMsj);
     } else {
         glGetProgramiv (id, GL_LINK_STATUS, &resultado);
         mensaje = "[error]: Error indeterminado al enlazar los shaders.";
+        glGetProgramiv ( id, GL_INFO_LOG_LENGTH, &tamMsj );
     }
 
     if (resultado == GL_FALSE) {
         /* Ha habido un error en la compilación.
           Para saber qué ha pasado, tenemos que recuperar el mensaje de error de
           OpenGL */
-        GLint tamMsj = 0;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &tamMsj);
-
         if (tamMsj > 0) {
             GLchar* mensajeFormatoC = new GLchar[tamMsj];
             GLint datosEscritos = 0;
