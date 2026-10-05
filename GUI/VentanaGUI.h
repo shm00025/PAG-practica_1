@@ -21,10 +21,14 @@ namespace PAG {
         GUI *padre = nullptr;
         std::vector<Listener*> listeners;
 
+        float tamTexto;
+
         WindowType tipoVentana;
 
     public:
-        VentanaGUI(const std::vector<Listener*> &listeners) : listeners(listeners), tipoVentana(General) {};
+        VentanaGUI(const std::vector<Listener*> &listeners) : listeners(listeners), tipoVentana(General) {
+            this->tamTexto = 1.0f;
+        };
         virtual ~VentanaGUI() = default;
 
         virtual void dibujar() = 0;

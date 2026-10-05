@@ -24,6 +24,8 @@ namespace PAG {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
 
         if (ImGui::Begin("Consola")) {
+            ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
+
             if (ImGui::SmallButton("Clear")) { ClearLog(); }
             ImGui::Separator();
 
@@ -117,6 +119,16 @@ namespace PAG {
                     // La añadimos al stream
                     this->Items << cadena;
                 }
+
+                va_end(args);
+                break;
+            }
+            case WindowType::TextSize: {
+                std::va_list args;
+                va_start(args, t);
+
+                const float* tam = va_arg(args, const float *);
+                if (tam) this->tamTexto = *tam;
 
                 va_end(args);
                 break;

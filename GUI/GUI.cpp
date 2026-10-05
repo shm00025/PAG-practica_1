@@ -11,6 +11,7 @@
 
 #include "VentanaConsolaGUI.h"
 #include "VentanaFondoGUI.h"
+#include "VentanaTamTexto.h"
 #include "../Renderer.h"
 
 namespace PAG {
@@ -56,14 +57,23 @@ namespace PAG {
         ImGui_ImplOpenGL3_Init ();
 
         // Creamos las ventanas y añadimos sus listeners
+        std::vector<Listener*> listTexto;
+
+        // Consola de texto y errores
         std::vector<Listener*> lista;
         ventanas.push_back(std::make_unique<VentanaConsolaGUI>(lista));
         this->listeners.push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la consola como nuestro listener
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
+        // Paleta para elegir el color del fondo
         lista.push_back(renderer);
         ventanas.push_back(std::make_unique<VentanaFondoGUI>(lista));
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         // Metemos el fondo como listener del renderer (Listeners circulares)
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()));
+
+        // Slider para el tamaño del texto
+        ventanas.push_back(std::make_unique<VentanaTamTexto>(listTexto));
     }
 
     void GUI::refrescar() {

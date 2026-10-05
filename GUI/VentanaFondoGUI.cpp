@@ -24,7 +24,7 @@ namespace PAG {
 
         if (ImGui::Begin("Paleta")) {
             // La ventana está desplegada
-            ImGui::SetWindowFontScale(1.0f); // Escalamos el texto si fuera necesario
+            ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
 
             ImVec4 color = ImVec4(this->fondo[r], this->fondo[g], this->fondo[b], 1.0f);
 
@@ -63,6 +63,16 @@ namespace PAG {
 
                 const std::vector<float> colorFondo = *(va_arg(args, std::vector<float> *));
                 this->fondo = colorFondo;
+
+                va_end(args);
+                break;
+            }
+            case WindowType::TextSize: {
+                std::va_list args;
+                va_start(args, t);
+
+                const float* tam = va_arg(args, const float *);
+                if (tam) this->tamTexto = *tam;
 
                 va_end(args);
                 break;

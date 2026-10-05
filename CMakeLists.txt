@@ -18,6 +18,8 @@ add_executable(${PROJECT_NAME} ${MY_FILES}
                                ${IMGUI_FILES}
         GUI/VentanaConsolaGUI.cpp
         GUI/VentanaConsolaGUI.h
+        GUI/VentanaTamTexto.cpp
+        GUI/VentanaTamTexto.h
 )
 
 find_package(OpenGL REQUIRED)
