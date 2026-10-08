@@ -109,6 +109,19 @@ namespace PAG {
 
     void VentanaConsolaGUI::wakeUp(WindowType t, ...) {
         switch (t) {
+            case WindowType::Renderer: {
+                std::va_list args;
+                va_start(args, t);
+
+                const char* cadena = va_arg(args, const char *);
+                if (cadena) {
+                    // La añadimos al stream
+                    this->Items << cadena;
+                }
+
+                va_end(args);
+                break;
+            }
             case WindowType::General: {
                 std::va_list args;
                 va_start(args, t);

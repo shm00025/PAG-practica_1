@@ -8,10 +8,7 @@
 #include <vector>
 
 #include "../listener.h"
-
-constexpr int r = 0, g = 1, b = 2, alfa = 3;
-constexpr int numCanales = 3;
-
+#include "../constantes.h"
 
 namespace PAG {
     class GUI;

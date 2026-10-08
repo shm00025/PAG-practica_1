@@ -6,6 +6,7 @@
 #define PRACTICA_1_RENDERER_H
 
 #include <vector>
+#include <map>
 
 #include "ShaderProgram.h"
 #include "../listener.h"
@@ -25,9 +26,10 @@ namespace PAG {
         std::vector<float> colorFondo = {0.0f, 0.0f, 0.0f, 1.0f};
 
         WindowType tipoVentana;
-        std::vector<Listener*> listeners;
+        std::map<WindowType, std::vector<Listener*>> listeners;
 
         ShaderProgram shaderProgram;
+        std::string mensajeError = "";
 
     public:
         virtual ~Renderer ();
@@ -40,8 +42,14 @@ namespace PAG {
         void cerrar_ventana(void *ventana, int valor);
         void scroll(void* flagsOndas, double xoffset, double yoffset);
 
-        void addListener(Listener *listener);
-        void warnListeners();
+        /* Quiero avisar al fondo del cambio de color con la rueda del ratón, pero también a la
+         * consola cuando se de un error. Mi propuesta ha sido indicar el tipo de ventana a la
+         * que se va a comunicar, para enviar un dato u otro. El problema está en que todos los
+         * listeners recibirán el dato. Una posible solución es usar un mapa de listas de listeners
+         * con claves en el enumerado de tipos de ventana, para solo avisar a los listeners de ese tipo
+         */
+        void warnListeners(WindowType t);
+        void addListener(Listener *listener, WindowType tipo);
         void wakeUp ( WindowType t, ... ) override;
 
         void creaShaderProgram(std::string &rutaShader);

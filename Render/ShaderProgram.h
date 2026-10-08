@@ -5,14 +5,10 @@
 #ifndef PRACTICA_1_SHADERPROGRAM_H
 #define PRACTICA_1_SHADERPROGRAM_H
 
-#include<string>
+#include <vector>
+#include <string>
 
-enum TipoShader {VertexShader, FragmentShader};
-enum TipoVBO {NoEntrelazado, Entrelazado};
-
-const std::string rutaFuenteGLSL = "../shaders/pag03";
-const std::string sufijoVS = "-vs.glsl";
-const std::string sufijoFS = "-fs.glsl";
+#include "../constantes.h"
 
 namespace PAG {
     class ShaderProgram {
@@ -24,11 +20,14 @@ namespace PAG {
         GLuint idSP = 0; // Identificador del shader program
         GLuint idVAO = 0; // Identificador del vertex array object
         GLuint idVBO = 0; // Identificador del vertex buffer object
-        GLuint idVBOColor = 0; // Identificador del vertex buffer object
         GLuint idIBO = 0; // Identificador del index buffer object
+        std::vector<GLuint> idVBOs;
 
-        void modeloVBOEntrelazado(const GLfloat *verticesConColor, int numElementos, int paso);
+        void modeloVBOEntrelazado(const GLfloat *atributo, int tamVector);
         void modeloVBONoEntrelazado(const GLfloat *vertices, const GLfloat *colores, int numElementos, int paso);
+
+        void meterAtributoVBOEntrelazado(int i, int numAtributos, int paso);
+        void meterAtributoVBONoEntrelazado(const GLfloat *atributo, int i, int tamVector, int paso);
 
     public:
         ShaderProgram() = default;

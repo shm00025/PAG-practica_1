@@ -5,16 +5,14 @@
 #include <glad/glad.h>
 #include <GL/gl.h>
 #include <cstdarg>
-#include <iostream>
+#include <sstream>
 #include <GLFW/glfw3.h>
 #include <fstream>
 
-#include "../GUI/GUI.h"
 #include "Renderer.h"
 
 
-constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
-constexpr float margenInferior = 0, margenSuperior = 1;
+
 
 /** Esta función implementa un comportamiento en ondas de los colores, con distintas longitudes, de manera
  *  que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
@@ -65,7 +63,10 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() : tipoVentana(WindowType::Renderer), shaderProgram() {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), shaderProgram() {
+        for (const WindowType t : vectorWT) {
+            this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
+        }
     }
 
     /**
@@ -126,7 +127,8 @@ namespace PAG {
                 << ")" << std::endl;
         bool sentido = yoffset > 0;
         ss << "Override: " << (sentido ? "False" : "True") << std::endl;
-        GUI::getInstancia().poner_linea(ss);
+        this->mensajeError = ss.str();
+        warnListeners(WindowType::Console);
 
         // Actualizamos el color con la función asociada, de manera que modularizamos el código
         actualizarColor(color, flags_ondas, sentido);
@@ -142,20 +144,34 @@ namespace PAG {
         this->colorFondo[b] = color[b];
 
         // Avisamos a nuestros listeners
-        warnListeners();
+        warnListeners(WindowType::Background);
     }
 
-    void Renderer::addListener(Listener *listener) {
-        listeners.push_back(listener);
+    void Renderer::addListener(Listener *listener, WindowType tipo) {
+        listeners[tipo].push_back(listener);
     };
 
-    void Renderer::warnListeners() {
-        for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana, &colorFondo);
+    void Renderer::warnListeners(WindowType t) {
+        switch (t) {
+            case WindowType::Background: {
+                for (Listener *listener: listeners[t]) {
+                    listener->wakeUp(this->tipoVentana, &colorFondo);
+                }
+                break;
+            }
+            case WindowType::Console: {
+                for (Listener *listener: listeners[t]) {
+                    const char *cadena = this->mensajeError.c_str();
+                    listener->wakeUp(this->tipoVentana, cadena);
+                }
+                break;
+            }
         }
     }
 
     void Renderer::wakeUp(WindowType t, ...) {
+        this->mensajeError = "JAKSDLJSDLÑADFÑ";
+        warnListeners(WindowType::Console);
         switch (t) {
             case WindowType::Background: {
                 std::va_list args;
@@ -179,9 +195,8 @@ namespace PAG {
                     creaShaderProgram(nombreString);
                     creaModelo();
                 } catch (const std::exception& e) {
-                    std::stringstream ss;
-                    ss << e.what();
-                    GUI::getInstancia().poner_linea(ss);
+                    this->mensajeError = e.what();
+                    warnListeners(WindowType::Console);
                 }
 
                 va_end(args);
@@ -233,11 +248,19 @@ namespace PAG {
             .5, -.5, 0, 0.2, 1.0, 0.2,
             .0, .5, 0, 0.0, 0.0, 0.0
         };
+        try {
+            // VBO ENTRELAZADO
+            // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, vectorAtributos)
+            //this->shaderProgram.creaModelo(Entrelazado, indices, 2, sizeof(verticesConColor), 6, verticesConColor);
 
-        //todo llamar al vbo entrelazado y no entrelazado
-        // Creamos y activamos el VBO entrelazado
-        //this->shaderProgram.creaModelo(Entrelazado, indices, sizeof(verticesConColor), 6, verticesConColor);
-        this->shaderProgram.creaModelo(NoEntrelazado, indices, sizeof(vertices), 3, vertices, colores);
+            // VBO NO ENTRELAZADO
+            // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, atributos...)
+            this->shaderProgram.creaModelo(NoEntrelazado, indices, 2, sizeof(vertices), 3, vertices, colores);
+        } catch (const std::exception& e) {
+            std::string salida = e.what();
+            salida.append("\n");
+            throw std::runtime_error(salida);
+        }
     }
 
 
