@@ -170,8 +170,6 @@ namespace PAG {
     }
 
     void Renderer::wakeUp(WindowType t, ...) {
-        this->mensajeError = "JAKSDLJSDLÑADFÑ";
-        warnListeners(WindowType::Console);
         switch (t) {
             case WindowType::Background: {
                 std::va_list args;
