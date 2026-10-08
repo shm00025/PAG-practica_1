@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "GUI/GUI.h"
-#include "Renderer.h"
+#include "Render/Renderer.h"
 
 // ----------- FUNCIONES DEL GUIÓN -----------
 // - Esta función callback será llamada cuando GLFW produzca algún error
@@ -143,8 +143,6 @@ int main() {
     // Inicializamos OpenGL
     try {
         PAG::Renderer::getInstancia().inicializar();
-        PAG::Renderer::getInstancia().creaShaderProgram();
-        PAG::Renderer::getInstancia().creaModelo();
     } catch (const std::exception& e) {
         // Capturamos cualquier posible error y lo mostramos en la consola de GUI
         std::stringstream ss;

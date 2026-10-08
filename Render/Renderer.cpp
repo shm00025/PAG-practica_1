@@ -7,18 +7,14 @@
 #include <cstdarg>
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <fstream>
 
-#include "GUI/GUI.h"
+#include "../GUI/GUI.h"
 #include "Renderer.h"
 
-#include <fstream>
 
 constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
 constexpr float margenInferior = 0, margenSuperior = 1;
-
-const std::string rutaFuenteGLSL = "../shaders/pag03-";
-const std::string sufijoVS = "vs.glsl";
-const std::string sufijoFS = "fs.glsl";
 
 /** Esta función implementa un comportamiento en ondas de los colores, con distintas longitudes, de manera
  *  que se van combinando los tres canales en todas sus posibles combinaciones. Las variaciones son todas
@@ -61,68 +57,7 @@ void actualizarColor(float *color, FlagsOndas *flags_propios, bool sentido) {
     }
 }
 
-std::string cargarShader(TipoShader tipo) {
-    std::string terminacion, error;
 
-    // Controlamos el tipo de shader a cargar, que influye en el fichero a leer y el error a msotrar
-    switch (tipo) {
-        case VertexShader:
-            terminacion = sufijoVS;
-            error = "[error]: Error al crear el vertex shader, no se puede abrir el archivo.";
-            break;
-
-        case FragmentShader:
-            terminacion = sufijoFS;
-            error = "[error]: Error al crear el fragment shader, no se puede abrir el archivo.";
-            break;
-
-        default:
-            return nullptr;
-    }
-
-    // Abrimos y leemos el fichero, si hay un error, lanzamos excepción
-    std::ifstream archivoShader;
-    archivoShader.open(rutaFuenteGLSL + terminacion);
-    if (!archivoShader.is_open()) throw std::runtime_error(error);
-
-    std::stringstream streamShader;
-    streamShader << archivoShader.rdbuf();
-
-    // Cerramos el fichero y devolvemos el código fuente
-    archivoShader.close();
-    return streamShader.str();
-}
-
-void consultarCompilacion(GLint id, bool isShader) {
-    GLint resultado = 0, tamMsj = 0;
-    std::string mensaje;
-    if (isShader) {
-        glGetShaderiv(id, GL_COMPILE_STATUS, &resultado);
-        mensaje = "[error]: Error indeterminado al compilar el shader.";
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &tamMsj);
-    } else {
-        glGetProgramiv (id, GL_LINK_STATUS, &resultado);
-        mensaje = "[error]: Error indeterminado al enlazar los shaders.";
-        glGetProgramiv ( id, GL_INFO_LOG_LENGTH, &tamMsj );
-    }
-
-    if (resultado == GL_FALSE) {
-        /* Ha habido un error en la compilación.
-          Para saber qué ha pasado, tenemos que recuperar el mensaje de error de
-          OpenGL */
-        if (tamMsj > 0) {
-            GLchar* mensajeFormatoC = new GLchar[tamMsj];
-            GLint datosEscritos = 0;
-            glGetShaderInfoLog(id, tamMsj, &datosEscritos
-                                 , mensajeFormatoC);
-            mensaje.assign(mensajeFormatoC);
-            delete[] mensajeFormatoC;
-            mensajeFormatoC = nullptr;
-        }
-
-        throw std::runtime_error(mensaje);
-    }
-}
 
 namespace PAG {
     PAG::Renderer *PAG::Renderer::instancia = nullptr;
@@ -130,32 +65,13 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() : tipoVentana(WindowType::Renderer) {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer), shaderProgram() {
     }
 
     /**
     * Destructor
     */
-    Renderer::~Renderer() {
-        if (idVS != 0) {
-            glDeleteShader(idVS);
-        }
-        if (idFS != 0) {
-            glDeleteShader(idFS);
-        }
-        if (idSP != 0) {
-            glDeleteProgram(idSP);
-        }
-        if (idVBO != 0) {
-            glDeleteBuffers(1, &idVBO);
-        }
-        if (idIBO != 0) {
-            glDeleteBuffers(1, &idIBO);
-        }
-        if (idVAO != 0) {
-            glDeleteVertexArrays(1, &idVAO);
-        }
-    }
+    Renderer::~Renderer() {}
 
     /**
     * Consulta del objeto único de la clase
@@ -182,11 +98,7 @@ namespace PAG {
     */
     void Renderer::refrescar() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glUseProgram(idSP);
-        glBindVertexArray(idVAO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+        this->shaderProgram.refrescar();
     }
 
     void Renderer::redimensionar(int width, int height) {
@@ -206,13 +118,15 @@ namespace PAG {
         // el user pointer es un puntero void
         FlagsOndas *flags_ondas = (FlagsOndas *) flagsOndas;
 
-        std::cout << "Color actual: (" << color[r] << ", " << color[g] << ", " << color[b] << ")" << std::endl;
-        std::cout << "Flags ondas: (r: " << flags_ondas->flags[r]
+        std::stringstream ss;
+        ss << "Color actual: (" << color[r] << ", " << color[g] << ", " << color[b] << ")" << std::endl;
+        ss << "Flags ondas: (r: " << flags_ondas->flags[r]
                 << ", g: " << flags_ondas->flags[g]
                 << ", b: " << flags_ondas->flags[b]
                 << ")" << std::endl;
         bool sentido = yoffset > 0;
-        std::cout << "Override: " << (sentido ? "False" : "True") << std::endl;
+        ss << "Override: " << (sentido ? "False" : "True") << std::endl;
+        GUI::getInstancia().poner_linea(ss);
 
         // Actualizamos el color con la función asociada, de manera que modularizamos el código
         actualizarColor(color, flags_ondas, sentido);
@@ -255,7 +169,21 @@ namespace PAG {
             case WindowType::ShaderSelector: {
                 std::va_list args;
                 va_start(args, t);
-                // todo
+
+                // Seleccionamos el nombre
+                char *nombreShader = va_arg(args, char *);
+                std::string nombreString(nombreShader);
+
+                // Creamos los datos
+                try {
+                    creaShaderProgram(nombreString);
+                    creaModelo();
+                } catch (const std::exception& e) {
+                    std::stringstream ss;
+                    ss << e.what();
+                    GUI::getInstancia().poner_linea(ss);
+                }
+
                 va_end(args);
                 break;
             }
@@ -273,34 +201,10 @@ namespace PAG {
     * Método para crear, compilar y enlazar el shader program
     * @note No se incluye ninguna comprobación de errores
     */
-    void Renderer::creaShaderProgram() {
-        std::string codigoFuenteShader;
-
+    void Renderer::creaShaderProgram(std::string &rutaShader) {
         try {
-            // Creamos el vertex shader
-            idVS = glCreateShader(GL_VERTEX_SHADER);
-            if (idVS == 0 ) throw std::runtime_error("[error]: Error al crear el vertex shader, identificador nulo.");
-            codigoFuenteShader = cargarShader(VertexShader);
-            const GLchar *fuenteVS = codigoFuenteShader.c_str();
-            glShaderSource(idVS, 1, &fuenteVS, nullptr);
-            glCompileShader(idVS);
-            consultarCompilacion(idVS, true);
-
-            idFS = glCreateShader(GL_FRAGMENT_SHADER);
-            if (idFS == 0 ) throw std::runtime_error("[error]: Error al crear el fragment shader, identificador nulo.");
-            codigoFuenteShader = cargarShader(FragmentShader);
-            const GLchar *fuenteFS = codigoFuenteShader.c_str();
-            glShaderSource(idFS, 1, &fuenteFS, nullptr);
-            glCompileShader(idFS);
-            consultarCompilacion(idFS, true);
-
-            // Creamos el programa que contiene los shaders
-            idSP = glCreateProgram();
-            if (idSP == 0 ) throw std::runtime_error("[error]: Error al crear el shader program, identificador nulo.");
-            glAttachShader(idSP, idVS);
-            glAttachShader(idSP, idFS);
-            glLinkProgram(idSP);
-            consultarCompilacion(idSP, false);
+            // Creamos el shader program
+            shaderProgram.creaShaderProgram(rutaShader);
         } catch (const std::exception& e) {
             std::string salida = e.what();
             salida.append("\n");
@@ -313,6 +217,7 @@ namespace PAG {
     * @note No se incluye ninguna comprobación de errores
     */
     void Renderer::creaModelo() {
+        GLuint indices[] = {0, 1, 2};
         GLfloat vertices[] = {
             -.5, -.5, 0,
             .5, -.5, 0,
@@ -323,56 +228,16 @@ namespace PAG {
             0.2, 1.0, 0.2,
             0.0, 0.0, 0.0
         };
-        GLuint indices[] = {0, 1, 2};
-
-        // Creamos y activamos el VAO
-        glGenVertexArrays(1, &idVAO);
-        glBindVertexArray(idVAO);
-
-        // Creamos y activamos el VBO no entrelazado
-        /*
-        // Generamos el primer VBO, el de los vértices
-        glGenBuffers(1, &idVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, idVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-        // Lo activamos y le damos las dimensiones de los datos
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
-
-        // Generamos el segundo VBO, el de los colores
-        glGenBuffers(1, &idVBOColor);
-        glBindBuffer(GL_ARRAY_BUFFER, idVBOColor);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(colores), colores, GL_STATIC_DRAW);
-
-        // Lo activamos y le damos las dimensiones de los datos
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
-        */
-
-        // Creamos y activamos el VBO entrelazado
         GLfloat verticesConColor[] = {
             -.5, -.5, 0, 1.0, 0.6, 0.8,
             .5, -.5, 0, 0.2, 1.0, 0.2,
             .0, .5, 0, 0.0, 0.0, 0.0
         };
-        // Generamos el VBO para los datos entrelazados
-        glGenBuffers(1, &idVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, idVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(verticesConColor), verticesConColor, GL_STATIC_DRAW);
 
-        // Activamos el atributo de los vértices e indicamos que es el primero y que tiene un paso de tamaño 6
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
-
-        // Activamos el atributo de los colores e indicamos que es el segundo, que empieza en la tercera posición y que tiene un paso de tamaño 6
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-
-        // Creamos y activamos el IBO
-        glGenBuffers(1, &idIBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
+        //todo llamar al vbo entrelazado y no entrelazado
+        // Creamos y activamos el VBO entrelazado
+        //this->shaderProgram.creaModelo(Entrelazado, indices, sizeof(verticesConColor), 6, verticesConColor);
+        this->shaderProgram.creaModelo(NoEntrelazado, indices, sizeof(vertices), 3, vertices, colores);
     }
 
 

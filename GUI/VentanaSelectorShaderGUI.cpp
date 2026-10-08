@@ -8,6 +8,9 @@
 
 #include "VentanaSelectorShaderGUI.h"
 
+#include <iostream>
+#include <ostream>
+
 
 namespace PAG {
     VentanaSelectorShaderGUI::VentanaSelectorShaderGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners) {
@@ -34,8 +37,10 @@ namespace PAG {
     }
 
     void VentanaSelectorShaderGUI::warnListeners() {
+        std::cout << "NOMBRE ORIGINAL: " << this->nombre << std::endl;
+        const char *cadena = this->nombre.c_str();
         for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana, &this->nombre);
+            listener->wakeUp(this->tipoVentana, cadena);
         }
     }
 

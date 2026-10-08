@@ -13,7 +13,7 @@
 #include "VentanaFondoGUI.h"
 #include "VentanaSelectorShaderGUI.h"
 #include "VentanaTamTexto.h"
-#include "../Renderer.h"
+#include "../Render/Renderer.h"
 
 namespace PAG {
     PAG::GUI *PAG::GUI::instancia = nullptr;

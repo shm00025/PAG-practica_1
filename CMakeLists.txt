@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 file(GLOB MY_FILES *.cpp)
 file(GLOB MY_GUI_FILES GUI/*.cpp)
 file(GLOB MY_GUI_HEADERS GUI/*.h)
+file(GLOB MY_RENDER_FILES Render/*.cpp)
+file(GLOB MY_RENDER_HEADERS Render/*.h)
 file(GLOB MY_HEADERS *.h)
 file(GLOB GLAD_FILES GLAD/src/*.c)
 file(GLOB IMGUI_FILES imgui/src/*.cpp)
@@ -13,15 +15,11 @@ file(GLOB IMGUI_FILES imgui/src/*.cpp)
 add_executable(${PROJECT_NAME} ${MY_FILES}
                                ${MY_GUI_FILES}
                                ${MY_GUI_HEADERS}
+                               ${MY_RENDER_FILES}
+                               ${MY_RENDER_HEADERS}
                                ${MY_HEADERS}
                                ${GLAD_FILES}
                                ${IMGUI_FILES}
-        GUI/VentanaConsolaGUI.cpp
-        GUI/VentanaConsolaGUI.h
-        GUI/VentanaTamTexto.cpp
-        GUI/VentanaTamTexto.h
-        GUI/VentanaSelectorShaderGUI.cpp
-        GUI/VentanaSelectorShaderGUI.h
 )
 
 find_package(OpenGL REQUIRED)
