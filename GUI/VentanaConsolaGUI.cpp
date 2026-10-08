@@ -3,7 +3,6 @@
 //
 
 #include <imgui.h>
-#include <GLFW/glfw3.h>
 #include <cstdarg>
 
 #include "VentanaConsolaGUI.h"
@@ -24,6 +23,8 @@ namespace PAG {
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
 
         if (ImGui::Begin("Consola")) {
+            ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
+
             if (ImGui::SmallButton("Clear")) { ClearLog(); }
             ImGui::Separator();
 
@@ -108,6 +109,19 @@ namespace PAG {
 
     void VentanaConsolaGUI::wakeUp(WindowType t, ...) {
         switch (t) {
+            case WindowType::Renderer: {
+                std::va_list args;
+                va_start(args, t);
+
+                const char* cadena = va_arg(args, const char *);
+                if (cadena) {
+                    // La añadimos al stream
+                    this->Items << cadena;
+                }
+
+                va_end(args);
+                break;
+            }
             case WindowType::General: {
                 std::va_list args;
                 va_start(args, t);
@@ -117,6 +131,16 @@ namespace PAG {
                     // La añadimos al stream
                     this->Items << cadena;
                 }
+
+                va_end(args);
+                break;
+            }
+            case WindowType::TextSize: {
+                std::va_list args;
+                va_start(args, t);
+
+                const float* tam = va_arg(args, const float *);
+                if (tam) this->tamTexto = *tam;
 
                 va_end(args);
                 break;

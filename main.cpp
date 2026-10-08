@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "GUI/GUI.h"
-#include "Renderer.h"
+#include "Render/Renderer.h"
 
 // ----------- FUNCIONES DEL GUIÓN -----------
 // - Esta función callback será llamada cuando GLFW produzca algún error
@@ -58,19 +58,13 @@ void callbackRefrescoVentana ( GLFWwindow* ventana ) {
 
 // Función callback para el scroll realizado con la rueda del ratón.
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    std::cout << "Movida la rueda del ratón " << xoffset
-            << " Unidades en horizontal y " << yoffset
-            << " unidades en vertical" << std::endl;
-    PAG::Renderer::getInstancia().scroll(glfwGetWindowUserPointer(window), xoffset, yoffset);
-}
-
-// Función callback para el scroll realizado con la rueda del ratón.
-void scroll_callback_simple(GLFWwindow *window, double xoffset, double yoffset) {
     std::stringstream ss;
     ss << "Movida la rueda del ratón " << xoffset
        << " Unidades en horizontal y " << yoffset
        << " unidades en vertical" << std::endl;
+
     PAG::GUI::getInstancia().poner_linea(ss);
+    PAG::Renderer::getInstancia().scroll(glfwGetWindowUserPointer(window), xoffset, yoffset);
 }
 
 
@@ -143,8 +137,6 @@ int main() {
     // Inicializamos OpenGL
     try {
         PAG::Renderer::getInstancia().inicializar();
-        PAG::Renderer::getInstancia().creaShaderProgram();
-        PAG::Renderer::getInstancia().creaModelo();
     } catch (const std::exception& e) {
         // Capturamos cualquier posible error y lo mostramos en la consola de GUI
         std::stringstream ss;

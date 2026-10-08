@@ -5,8 +5,7 @@
 #ifndef PRACTICA_1_LISTENER_H
 #define PRACTICA_1_LISTENER_H
 
-// Indicamos los tipos de ventana que tenemos actualmente en el sistema
-enum WindowType {Renderer, General, Background, Console};
+#include "constantes.h"
 
 namespace PAG {
     class Listener

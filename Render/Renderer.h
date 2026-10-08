@@ -6,8 +6,10 @@
 #define PRACTICA_1_RENDERER_H
 
 #include <vector>
+#include <map>
 
-#include "listener.h"
+#include "ShaderProgram.h"
+#include "../listener.h"
 
 /** Este struct encapsula los flags que controlan el funcionamiento de los colores. Si queremos una transición
  *  limpia entre los tres canales, necesitamos que los valores aumenten hasta el máximo y luego disminuyan hasta
@@ -17,25 +19,17 @@ struct FlagsOndas {
     bool flags[3] = {true, true, true};
 };
 
-enum TipoShader {VertexShader, FragmentShader};
-
 namespace PAG {
     class Renderer : public Listener {
         static Renderer *instancia;
         Renderer();
-        std::vector<float> colorFondo = {0.6f, 0.6f, 0.6f, 1.0f};
+        std::vector<float> colorFondo = {0.0f, 0.0f, 0.0f, 1.0f};
 
         WindowType tipoVentana;
-        std::vector<Listener*> listeners;
+        std::map<WindowType, std::vector<Listener*>> listeners;
 
-        // Render
-        GLuint idVS = 0; // Identificador del vertex shader
-        GLuint idFS = 0; // Identificador del fragment shader
-        GLuint idSP = 0; // Identificador del shader program
-        GLuint idVAO = 0; // Identificador del vertex array object
-        GLuint idVBO = 0; // Identificador del vertex buffer object
-        GLuint idVBOColor = 0; // Identificador del vertex buffer object
-        GLuint idIBO = 0; // Identificador del index buffer object
+        ShaderProgram shaderProgram;
+        std::string mensajeError = "";
 
     public:
         virtual ~Renderer ();
@@ -48,11 +42,17 @@ namespace PAG {
         void cerrar_ventana(void *ventana, int valor);
         void scroll(void* flagsOndas, double xoffset, double yoffset);
 
-        void addListener(Listener *listener);
-        void warnListeners();
+        /* Quiero avisar al fondo del cambio de color con la rueda del ratón, pero también a la
+         * consola cuando se de un error. Mi propuesta ha sido indicar el tipo de ventana a la
+         * que se va a comunicar, para enviar un dato u otro. El problema está en que todos los
+         * listeners recibirán el dato. Una posible solución es usar un mapa de listas de listeners
+         * con claves en el enumerado de tipos de ventana, para solo avisar a los listeners de ese tipo
+         */
+        void warnListeners(WindowType t);
+        void addListener(Listener *listener, WindowType tipo);
         void wakeUp ( WindowType t, ... ) override;
 
-        void creaShaderProgram();
+        void creaShaderProgram(std::string &rutaShader);
         void creaModelo();
 
         int get_gladLoadGLLoader(void* procAddr);
