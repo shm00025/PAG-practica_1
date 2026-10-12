@@ -13,6 +13,11 @@ namespace PAG {
         float anguloPan = -90;
         float anguloTilt = 0;
 
+        float anguloLatitud = 90;
+        float anguloLongitud = 0;
+        float radioOrbita = 0;
+        bool necesarioRecalcularRadio = true;
+
         glm::vec3 traslaciones = glm::vec3(0.0f, 0.0f, 0.0f);
         glm::vec3 rotaciones = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -31,7 +36,7 @@ namespace PAG {
         void tilt(float angulo); // Eje u o y
         void dolly(float espacioX, float espacioZ);
         void crane(float espacioY);
-        void orbit(float anguloLatitude, float anguloLongitud);
+        void orbit(float anguloLatitud, float anguloLongitud);
         void zoom(float angulo);
 
     public:

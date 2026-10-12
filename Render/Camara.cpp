@@ -57,12 +57,38 @@ namespace PAG {
         movimientoPanTilt();
     }
 
-    void Camara::dolly(GLfloat espacioX, GLfloat espacioZ) {}
+    void Camara::dolly(GLfloat espacioX, GLfloat espacioZ) {
+        this->necesarioRecalcularRadio = true;
+    }
 
-    void Camara::crane(GLfloat espacioY) {}
+    void Camara::crane(GLfloat espacioY) {
+        this->necesarioRecalcularRadio = true;
+    }
 
-    void Camara::orbit(GLfloat anguloLatitude, GLfloat anguloLongitud) {
+    void Camara::orbit(GLfloat anguloLatitudP, GLfloat anguloLongitudP) {
+        // Actualizamos los ángulos de rotación y limitamos el vertical
+        this->anguloLatitud += anguloLatitudP;
+        this->anguloLongitud += anguloLongitudP;
+        if (this->anguloLongitud > limiteTilt) this->anguloLongitud = limiteTilt;
+        if (this->anguloLongitud < (-1) * limiteTilt) this->anguloLongitud = (-1) * limiteTilt;
 
+        if (necesarioRecalcularRadio) {
+            // Obtenemos la distancia de la cámara al centro de coordenadas
+            glm::vec3 diferencia = - position;
+            this->radioOrbita = sqrt((
+                (diferencia.x * diferencia.x) +
+                (diferencia.y * diferencia.y) +
+                (diferencia.z * diferencia.z)));
+            this->necesarioRecalcularRadio = false;
+        }
+
+        // Actualizamos las posiciones de la cámara dado que es esta la que rota
+        this->position.x = radioOrbita * (float) cos(glm::radians(this->anguloLatitud)) * (float) cos(glm::radians(this->anguloLongitud));
+        this->position.y = radioOrbita * (float) sin(glm::radians(this->anguloLongitud));
+        this->position.z = radioOrbita * (float) sin(glm::radians(this->anguloLatitud)) * (float) cos(glm::radians(this->anguloLongitud));
+
+        this->v = glm::lookAt(this->position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        recalcularMatrices();
     }
 
     void Camara::zoom(GLfloat angulo) {}
@@ -86,6 +112,7 @@ namespace PAG {
                 break;
             }
             case 4: { // Orbit
+                this->orbit(valorX * factorConversionAngulo, valorY * factorConversionAngulo);
                 break;
             }
             case 5: { // Zoom
