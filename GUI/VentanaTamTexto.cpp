@@ -13,7 +13,7 @@ namespace PAG {
 
     void VentanaTamTexto::dibujar() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(400, 10), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(20, 100), ImGuiCond_Once);
 
         if (ImGui::Begin("TamTexto")) {
             ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario

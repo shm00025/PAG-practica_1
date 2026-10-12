@@ -1,6 +1,7 @@
 #include <iostream>
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 
 #include "GUI/GUI.h"
 #include "Render/Renderer.h"
@@ -32,6 +33,21 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     std::stringstream ss;
     ss << "Key callback called" << std::endl;
     PAG::GUI::getInstancia().poner_linea(ss);
+
+    ImGuiIO& io = ImGui::GetIO ();
+    io.AddMouseButtonEvent(key, action);
+    if (action == GLFW_PRESS) {
+        ImGuiIO& io = ImGui::GetIO ();
+        io.AddMouseButtonEvent(key, true);
+
+        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+    } else if (action == GLFW_RELEASE) {
+        ImGuiIO& io = ImGui::GetIO ();
+        io.AddMouseButtonEvent(key, false);
+
+        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+    }
+
 }
 
 // - Esta función callback será llamada cada vez que se pulse algún botón
@@ -40,11 +56,19 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     if (action == GLFW_PRESS) {
         std::stringstream ss;
         ss << "Pulsado el botón: " << button << std::endl;
-        PAG::GUI::getInstancia().poner_linea(ss);
+
+        ImGuiIO& io = ImGui::GetIO ();
+        io.AddMouseButtonEvent(button, true);
+
+        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
     } else if (action == GLFW_RELEASE) {
         std::stringstream ss;
         ss << "Soltado el botón: " << button << std::endl;
-        PAG::GUI::getInstancia().poner_linea(ss);
+
+        ImGuiIO& io = ImGui::GetIO ();
+        io.AddMouseButtonEvent(button, false);
+
+        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
     }
 }
 

@@ -6,8 +6,10 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 #include "GUI.h"
+#include "VentanaCamaraGUI.h"
 #include "VentanaConsolaGUI.h"
 #include "VentanaFondoGUI.h"
 #include "VentanaSelectorShaderGUI.h"
@@ -20,7 +22,10 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    GUI::GUI() : tipoVentana(WindowType::General), ventanas() {
+    GUI::GUI() : tipoVentana(WindowType::General), ventanas(), cadenaMensaje() {
+        for (const WindowType t : vectorWT) {
+            this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
+        }
     }
 
     /**
@@ -42,7 +47,8 @@ namespace PAG {
 
     void GUI::poner_linea(std::stringstream &linea) {
         // Pasamos el string por referencia para que sea más eficiente
-        warnListeners(linea.str().c_str());
+        this->cadenaMensaje = linea.str();
+        warnListeners(WindowType::Console);
     }
 
     void GUI::inicializar(void* ventana, Listener* renderer) {
@@ -62,10 +68,14 @@ namespace PAG {
         // Consola de texto y errores
         std::vector<Listener*> lista;
         ventanas.push_back(std::make_unique<VentanaConsolaGUI>(lista));
-        this->listeners.push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la consola como nuestro listener
+        this->listeners[WindowType::Console].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la consola como nuestro listener
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         // Metemos la consola como listener del renderer para poder mandar errores
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Console);
+
+        // Selector de tipos de cámara
+        ventanas.push_back(std::make_unique<VentanaCamaraGUI>(lista));
+        this->listeners[WindowType::Camera].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la camara como nuestro listener
 
         // Paleta para elegir el color del fondo
         lista.push_back(renderer);
@@ -87,6 +97,23 @@ namespace PAG {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        // Controlamos los eventos
+        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+
+        }
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            clickDerechoPresionado = true; // Registramos que se ha presionado el botón
+            posRaton = ImGui::GetMousePos(); // Registramos la posición en la que se inició el arrastre
+        }
+        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+            clickDerechoPresionado = false;
+        }
+        if (clickDerechoPresionado) {
+            ImVec2 nuevaPos = ImGui::GetMousePos();
+            std::cout << "Diferencia con la posición original: " << nuevaPos.x - posRaton.x << ", " << nuevaPos.y - posRaton.y << std::endl;
+        }
+
+
         // Se dibujan los controles de Dear ImGui
         for (const auto& ventana : ventanas) {
             ventana->dibujar();
@@ -103,9 +130,18 @@ namespace PAG {
         ImGui::DestroyContext ();
     }
 
-    void GUI::warnListeners(const char *cadena) {
-        for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana, cadena);
+    void GUI::warnListeners(WindowType t) {
+        switch (t) {
+            case WindowType::Console: {
+                for (Listener *listener: listeners[WindowType::Console]) {
+                    listener->wakeUp(this->tipoVentana, this->cadenaMensaje.c_str());
+                }
+            }
+            case WindowType::Camera: {
+                for (Listener *listener: listeners[WindowType::Camera]) {
+                    listener->wakeUp(this->tipoVentana); //TODO===================================================================================================
+                }
+            }
         }
     }
 }

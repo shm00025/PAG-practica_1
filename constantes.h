@@ -21,7 +21,7 @@ constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
 constexpr float margenInferior = 0, margenSuperior = 1;
 
 // Indicamos los tipos de ventana que tenemos actualmente en el sistema
-enum WindowType {Renderer, General, Background, Console, TextSize, ShaderSelector};
-const std::vector<WindowType> vectorWT = {Renderer, General, Background, Console, TextSize, ShaderSelector};
+enum WindowType {Renderer, General, Background, Console, TextSize, ShaderSelector, Camera};
+const std::vector<WindowType> vectorWT = {Renderer, General, Background, Console, TextSize, ShaderSelector, Camera};
 
 #endif //PRACTICA_1_CONSTANTES_H

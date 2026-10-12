@@ -15,7 +15,7 @@ namespace PAG {
 
     void VentanaFondoGUI::dibujar() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(400, 10), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(10, 300), ImGuiCond_Once);
 
         if (ImGui::Begin("Paleta", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada

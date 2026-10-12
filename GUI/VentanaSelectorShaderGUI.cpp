@@ -16,7 +16,7 @@ namespace PAG {
 
     void VentanaSelectorShaderGUI::dibujar() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(400, 10), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(10, 200), ImGuiCond_Once);
 
         if (ImGui::Begin("ShaderSelector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada
