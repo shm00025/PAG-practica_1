@@ -69,6 +69,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 
 
 int main() {
+    int w = 1024, h = 576;
+
     std::cout << "Starting Application PAG - Prueba 01" << std::endl;
     // - Este callback hay que registrarlo ANTES de llamar a glfwInit
     glfwSetErrorCallback((GLFWerrorfun) error_callback);
@@ -93,7 +95,7 @@ int main() {
     GLFWwindow *window;
     // - Tamaño, título de la ventana, en ventana y no en pantalla completa,
     // sin compartir recursos con otras ventanas.
-    window = glfwCreateWindow(1024, 576, "PAG Introduction", nullptr, nullptr);
+    window = glfwCreateWindow(w, h, "PAG Introduction", nullptr, nullptr);
     // - Comprobamos si la creación de la ventana ha tenido éxito.
     if (window == nullptr) {
         std::cout << "Failed to open GLFW window" << std::endl;
@@ -136,7 +138,7 @@ int main() {
 
     // Inicializamos OpenGL
     try {
-        PAG::Renderer::getInstancia().inicializar();
+        PAG::Renderer::getInstancia().inicializar(w, h);
     } catch (const std::exception& e) {
         // Capturamos cualquier posible error y lo mostramos en la consola de GUI
         std::stringstream ss;

@@ -9,6 +9,7 @@
 #include <map>
 
 #include "ShaderProgram.h"
+#include "Camara.h"
 #include "../listener.h"
 
 /** Este struct encapsula los flags que controlan el funcionamiento de los colores. Si queremos una transición
@@ -31,29 +32,28 @@ namespace PAG {
         ShaderProgram shaderProgram;
         std::string mensajeError = "";
 
+        Camara camara;
+
     public:
         virtual ~Renderer ();
         static Renderer& getInstancia ();
 
-        void inicializar();
+        void inicializar(GLint w, GLint h);
         void refrescar();
 
         void redimensionar(int width, int height);
         void cerrar_ventana(void *ventana, int valor);
         void scroll(void* flagsOndas, double xoffset, double yoffset);
 
-        /* Quiero avisar al fondo del cambio de color con la rueda del ratón, pero también a la
-         * consola cuando se de un error. Mi propuesta ha sido indicar el tipo de ventana a la
-         * que se va a comunicar, para enviar un dato u otro. El problema está en que todos los
-         * listeners recibirán el dato. Una posible solución es usar un mapa de listas de listeners
-         * con claves en el enumerado de tipos de ventana, para solo avisar a los listeners de ese tipo
-         */
         void warnListeners(WindowType t);
         void addListener(Listener *listener, WindowType tipo);
         void wakeUp ( WindowType t, ... ) override;
 
         void creaShaderProgram(std::string &rutaShader);
         void creaModelo();
+
+        // TODO funcion que recibe datos desde la ventana de la interfaz de cámara de imgui y avisa a la cámara y después envía las nuevas matrices al shader program
+        void actualizarCamara();
 
         int get_gladLoadGLLoader(void* procAddr);
         float get_gl_renderer();

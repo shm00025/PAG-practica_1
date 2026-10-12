@@ -107,6 +107,22 @@ namespace PAG {
     void ShaderProgram::refrescar() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glUseProgram(idSP);
+
+        // Indicamos los uniform a usar en el renderizado del modelo
+        std::string nombreUniform = "matrizMVP";
+        GLint posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 )
+        {  // El uniform existe y se ha podido localizar correctamente
+            glUniformMatrix4fv ( posicion, 1, GL_FALSE, &this->matPVM[0][0] );
+        }
+
+        nombreUniform = "matrizMV";
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 )
+        {  // El uniform existe y se ha podido localizar correctamente
+            glUniformMatrix4fv ( posicion, 1, GL_FALSE, &this->matVM[0][0] );
+        }
+
         glBindVertexArray(idVAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);

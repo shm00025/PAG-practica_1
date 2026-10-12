@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <glm/glm.hpp>
 
 #include "../constantes.h"
 
@@ -29,6 +30,8 @@ namespace PAG {
         void meterAtributoVBOEntrelazado(int i, int numAtributos, int paso);
         void meterAtributoVBONoEntrelazado(const GLfloat *atributo, int i, int tamVector, int paso);
 
+        glm::mat4 matVM, matPVM;
+
     public:
         ShaderProgram() = default;
         ~ShaderProgram();
@@ -37,6 +40,8 @@ namespace PAG {
 
         void creaShaderProgram(std::string &rutaShader);
         void creaModelo(TipoVBO tipo_vbo, ...);
+
+        void actualizarMatrices(glm::mat4 vm, glm::mat4 pvm) { this->matVM = vm, this->matPVM = pvm; }
     };
 }
 
