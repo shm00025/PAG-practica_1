@@ -73,16 +73,17 @@ namespace PAG {
         // Metemos la consola como listener del renderer para poder mandar errores
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Console);
 
-        // Selector de tipos de cámara
-        ventanas.push_back(std::make_unique<VentanaCamaraGUI>(lista));
-        this->listeners[WindowType::Camera].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la camara como nuestro listener
-
         // Paleta para elegir el color del fondo
         lista.push_back(renderer);
         ventanas.push_back(std::make_unique<VentanaFondoGUI>(lista));
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         // Metemos el fondo como listener del renderer (Listeners circulares)
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Background);
+
+        // Selector de tipos de cámara
+        ventanas.push_back(std::make_unique<VentanaCamaraGUI>(lista));
+        this->listeners[WindowType::Camera].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la camara como nuestro listener
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
         // Ventana para la elección del shader
         ventanas.push_back(std::make_unique<VentanaSelectorShaderGUI>(lista));
@@ -97,27 +98,37 @@ namespace PAG {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Controlamos los eventos
-        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
-
-        }
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            clickDerechoPresionado = true; // Registramos que se ha presionado el botón
-            posRaton = ImGui::GetMousePos(); // Registramos la posición en la que se inició el arrastre
-        }
-        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-            clickDerechoPresionado = false;
-        }
-        if (clickDerechoPresionado) {
-            ImVec2 nuevaPos = ImGui::GetMousePos();
-            std::cout << "Diferencia con la posición original: " << nuevaPos.x - posRaton.x << ", " << nuevaPos.y - posRaton.y << std::endl;
-        }
-
-
         // Se dibujan los controles de Dear ImGui
         for (const auto& ventana : ventanas) {
             ventana->dibujar();
         }
+
+        ImGuiIO &io = ImGui::GetIO();
+
+        // Controlamos los eventos
+        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+            clickDerechoPresionado = false;
+        }
+        if (!io.WantCaptureMouse) {
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                clickDerechoPresionado = true; // Registramos que se ha presionado el botón
+                posRaton = ImGui::GetMousePos(); // Registramos la posición en la que se inició el arrastre
+            }
+            if (clickDerechoPresionado) {
+                ImVec2 nuevaPos = ImGui::GetMousePos();
+                difRatonX = posRaton.x - nuevaPos.x;
+                difRatonY = nuevaPos.y - posRaton.y;
+                if (difRatonX != 0 || difRatonY != 0) {
+                    warnListeners(WindowType::Camera); // Avisamos a la cámara de los desplazamientos realizados
+                    posRaton.x = nuevaPos.x;
+                    posRaton.y = nuevaPos.y;
+                }
+                //TODO quizá meter una actualziación de la posición aquí para calcular continuos
+            }
+        } else {
+            clickDerechoPresionado = false;
+        }
+
 
         // Aquí va el dibujado de la escena con instrucciones OpenGL
         ImGui::Render();
@@ -136,11 +147,13 @@ namespace PAG {
                 for (Listener *listener: listeners[WindowType::Console]) {
                     listener->wakeUp(this->tipoVentana, this->cadenaMensaje.c_str());
                 }
+                break;
             }
             case WindowType::Camera: {
                 for (Listener *listener: listeners[WindowType::Camera]) {
-                    listener->wakeUp(this->tipoVentana); //TODO===================================================================================================
+                    listener->wakeUp(this->tipoVentana, &difRatonX, &difRatonY);
                 }
+                break;
             }
         }
     }

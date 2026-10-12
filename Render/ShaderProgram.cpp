@@ -263,7 +263,6 @@ namespace PAG {
                     for (int i = 0; i < numAtributos; i++) {
                         const GLfloat *atributo = va_arg(args, GLfloat *);
                         if (atributo) {
-                            std::cout << "Leyendo el dato: " << i << std::endl;
                             this->meterAtributoVBONoEntrelazado(atributo, numeroAtributo, tamAtributoCompleto, datosPorVertice);
                             numeroAtributo++;
                         } else {

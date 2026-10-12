@@ -204,6 +204,25 @@ namespace PAG {
                 va_end(args);
                 break;
             }
+            case WindowType::Camera: {
+                std::va_list args;
+                va_start(args, t);
+
+                // Obtenemos los datos del menú de cámara o de los callbacks
+                int tipoCamara = *(va_arg(args, int *));
+                float valorX = *(va_arg(args, float *));
+                float valorY = *(va_arg(args, float *));
+
+                this->camara.movimiento(tipoCamara, valorX, valorY); // Indicamos el movimiento a la cámara
+                glm::mat4 v = this->camara.getV();
+                glm::mat4 pv = this->camara.getPV();
+                glm::mat4 vm = v * this->modeloProcesando;   // Componemos la matriz de visión y modelado para los vectores
+                glm::mat4 pvm = pv * this->modeloProcesando; // Componemos la matriz de proyección, visión y modelado para los vectores
+                this->shaderProgram.actualizarMatrices(vm, pvm);
+
+                va_end(args);
+                break;
+            }
                 // Procesar el resto de tipos de ventana
         }
         // Terminar cualquier otro procesamiento que sea necesario
@@ -252,6 +271,7 @@ namespace PAG {
         };
         glm::mat4 m = glm::mat4(1.0f); // Creamos una matriz identidad para que no se modifique el modelo
         // Aplicar T,R,S (No queremos modificar nada todavia)
+        this->modeloProcesando = m;
         // Cuando tengamos modelos avanzados se implementará una clase modelo que proporcione su matriz de modelado
 
         glm::mat4 v = this->camara.getV();

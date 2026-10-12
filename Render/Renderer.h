@@ -29,6 +29,8 @@ namespace PAG {
         WindowType tipoVentana;
         std::map<WindowType, std::vector<Listener*>> listeners;
 
+        glm::mat4 modeloProcesando; // Cambiar por una EEDD cuando haya varios modelos
+
         ShaderProgram shaderProgram;
         std::string mensajeError = "";
 

@@ -34,20 +34,31 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     ss << "Key callback called" << std::endl;
     PAG::GUI::getInstancia().poner_linea(ss);
 
-    ImGuiIO& io = ImGui::GetIO ();
-    io.AddMouseButtonEvent(key, action);
-    if (action == GLFW_PRESS) {
-        ImGuiIO& io = ImGui::GetIO ();
-        io.AddMouseButtonEvent(key, true);
+    ImGuiKey keyGUI;
+    bool encontrado = false;
 
-        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
-    } else if (action == GLFW_RELEASE) {
-        ImGuiIO& io = ImGui::GetIO ();
-        io.AddMouseButtonEvent(key, false);
-
-        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+    // No he enccontrado una función rápida de traducción de teclas, así que utilizo un switch pequeño
+    switch (key) {
+        case GLFW_KEY_UP: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
+        case GLFW_KEY_DOWN: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
+        case GLFW_KEY_RIGHT: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
+        case GLFW_KEY_LEFT: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
+        default: break;
     }
 
+    if (encontrado) {
+        if (action == GLFW_PRESS) {
+            ImGuiIO& io = ImGui::GetIO ();
+            io.AddKeyEvent(keyGUI, true);
+
+            PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        } else if (action == GLFW_RELEASE) {
+            ImGuiIO& io = ImGui::GetIO ();
+            io.AddKeyEvent(keyGUI, false);
+
+            PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        }
+    }
 }
 
 // - Esta función callback será llamada cada vez que se pulse algún botón

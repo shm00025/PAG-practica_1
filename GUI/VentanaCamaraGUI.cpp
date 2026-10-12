@@ -16,17 +16,14 @@ namespace PAG {
 
     void VentanaCamaraGUI::dibujar() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(100, 10), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(400, 10), ImGuiCond_Once);
 
+        // (*) En esta parte actuamos como creadores de información mediante nuestro menú de cámara
         if (ImGui::Begin("Camara", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada
             ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
 
-            const char* opciones_camara[] = {
-                "Pan", "Tilt", "Dolly", "Crane", "Orbit", "Zoom"
-            };
-            static int item_type = 5; // Ponemos el Zoom por defecto
-            ImGui::Combo("Item Type", &item_type, opciones_camara, IM_COUNTOF(opciones_camara), IM_COUNTOF(opciones_camara));
+            ImGui::Combo("Item Type", &this->tipoCamara, opciones_camara, IM_COUNTOF(opciones_camara), IM_COUNTOF(opciones_camara));
 
             // TODO CONTINUAR
         }
@@ -37,7 +34,7 @@ namespace PAG {
 
     void VentanaCamaraGUI::warnListeners() {
         for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana);
+            listener->wakeUp(this->tipoVentana, &this->tipoCamara, &this->valorX, &this->valorY);
         }
     }
 
@@ -57,8 +54,10 @@ namespace PAG {
                 std::va_list args;
                 va_start(args, t);
 
-                const float movX = *(va_arg(args, const float *)); // Movimiento en X del ratón
-                const float movY = *(va_arg(args, const float *)); // Movimiento en Y del ratón
+                // (*) En esta parte actuamos unicamente como transmisores de información
+                valorX = *(va_arg(args, const float *)); // Movimiento en X del ratón
+                valorY = *(va_arg(args, const float *)); // Movimiento en Y del ratón
+                warnListeners(); // Avisamos a renderer
 
                 va_end(args);
                 break;

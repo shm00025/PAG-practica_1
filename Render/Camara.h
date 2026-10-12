@@ -10,6 +10,9 @@
 
 namespace PAG {
     class Camara {
+        float anguloPan = -90;
+        float anguloTilt = 0;
+
         glm::vec3 traslaciones = glm::vec3(0.0f, 0.0f, 0.0f);
         glm::vec3 rotaciones = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -22,6 +25,14 @@ namespace PAG {
         float fovY = 45.0f;
 
         void recalcularMatrices();
+        void movimientoPanTilt();
+
+        void pan(float angulo); // Eje v o x
+        void tilt(float angulo); // Eje u o y
+        void dolly(float espacioX, float espacioZ);
+        void crane(float espacioY);
+        void orbit(float anguloLatitude, float anguloLongitud);
+        void zoom(float angulo);
 
     public:
         Camara();
@@ -31,12 +42,7 @@ namespace PAG {
         glm::mat4 getV() { return this->v; }
         glm::mat4 getPV() { return this->pv; }
 
-        void pan(float angulo); // Eje v o x
-        void tilt(float angulo); // Eje u o y
-        void dolly(float espacioX, float espacioZ);
-        void crane(float espacioY);
-        void orbit(float anguloLatitude, float anguloLongitud);
-        void zoom(float angulo);
+        void movimiento(int tipoMovimiento, float valorX, float valorY);
     };
 }
 

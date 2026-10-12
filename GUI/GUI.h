@@ -28,6 +28,7 @@ namespace PAG {
         std::string cadenaMensaje;
         bool clickDerechoPresionado = false;
         ImVec2 posRaton = ImVec2(0.0f, 0.0f);
+        float difRatonX, difRatonY;
 
     public:
         virtual ~GUI();

@@ -24,4 +24,8 @@ constexpr float margenInferior = 0, margenSuperior = 1;
 enum WindowType {Renderer, General, Background, Console, TextSize, ShaderSelector, Camera};
 const std::vector<WindowType> vectorWT = {Renderer, General, Background, Console, TextSize, ShaderSelector, Camera};
 
+inline const char* opciones_camara[] = { "Pan", "Tilt", "Dolly", "Crane", "Orbit", "Zoom" };
+constexpr float factorConversionAngulo = 0.1;
+constexpr float limiteTilt = 89.0f;
+
 #endif //PRACTICA_1_CONSTANTES_H

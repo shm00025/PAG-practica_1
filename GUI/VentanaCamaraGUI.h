@@ -10,6 +10,8 @@
 
 namespace PAG {
     class VentanaCamaraGUI : public VentanaGUI, public Listener {
+        int tipoCamara = 0;
+        float valorX = 0, valorY = 0;
 
     public:
         VentanaCamaraGUI(const std::vector<Listener*> &listeners);
