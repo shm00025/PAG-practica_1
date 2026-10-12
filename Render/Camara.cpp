@@ -59,10 +59,26 @@ namespace PAG {
 
     void Camara::dolly(GLfloat espacioX, GLfloat espacioZ) {
         this->necesarioRecalcularRadio = true;
+
+        // Calculamos los desplazamientos
+        this->position.x += espacioX;
+        this->position.z += espacioZ;
+        this->lookAt.x += espacioX;
+        this->lookAt.z += espacioZ;
+
+        this->v = glm::lookAt(this->position, lookAt, glm::vec3(0.0f, 1.0f, 0.0f));
+        recalcularMatrices();
     }
 
     void Camara::crane(GLfloat espacioY) {
         this->necesarioRecalcularRadio = true;
+
+        // Calculamos el desplazamiento
+        this->position.y += espacioY;
+        this->lookAt.y += espacioY;
+
+        this->v = glm::lookAt(this->position, lookAt, glm::vec3(0.0f, 1.0f, 0.0f));
+        recalcularMatrices();
     }
 
     void Camara::orbit(GLfloat anguloLatitudP, GLfloat anguloLongitudP) {
@@ -91,9 +107,14 @@ namespace PAG {
         recalcularMatrices();
     }
 
-    void Camara::zoom(GLfloat angulo) {}
+    void Camara::zoom(GLfloat angulo) {
+        this->fovY += angulo;
+        if (this->fovY < minFovY) this->fovY = minFovY;
+        if (this->fovY > maxFovY) this->fovY = maxFovY;
 
-
+        this->p = glm::perspective(glm::radians(this->fovY), this->aspectRatio, this->zNear, this->zFar);
+        recalcularMatrices(); // Actualizamos la matriz compuesta de proyección y visión para vértices
+    }
 
     void Camara::movimiento(int tipoMovimiento, float valorX, float valorY) {
         switch (tipoMovimiento) {
@@ -106,9 +127,11 @@ namespace PAG {
                 break;
             }
             case 2: { // Dolly
+                this->dolly(valorX * factorConversionDesplazamiento, valorY * factorConversionDesplazamiento);
                 break;
             }
             case 3: { // Crane
+                this->crane(valorY * factorConversionDesplazamiento);
                 break;
             }
             case 4: { // Orbit
@@ -116,6 +139,7 @@ namespace PAG {
                 break;
             }
             case 5: { // Zoom
+                this->zoom(valorY * factorConversionAngulo);
                 break;
             }
         }
