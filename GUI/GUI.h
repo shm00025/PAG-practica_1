@@ -7,6 +7,7 @@
 
 #include <iosfwd>
 #include <sstream>
+#include <map>
 #include <vector>
 #include <memory>
 
@@ -20,9 +21,14 @@ namespace PAG {
         GUI();
 
         WindowType tipoVentana;
-        std::vector<Listener*> listeners;
+        std::map<WindowType, std::vector<Listener*>> listeners;
 
         std::vector<std::unique_ptr<VentanaGUI>> ventanas;
+
+        std::string cadenaMensaje;
+        bool clickDerechoPresionado = false;
+        ImVec2 posRaton = ImVec2(0.0f, 0.0f);
+        float difRatonX, difRatonY;
 
     public:
         virtual ~GUI();
@@ -34,7 +40,7 @@ namespace PAG {
         void refrescar();
         void destruir();
 
-        virtual void warnListeners(const char *cadena);
+        virtual void warnListeners(WindowType t);
     };
 };
 

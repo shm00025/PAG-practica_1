@@ -63,7 +63,7 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), shaderProgram() {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), shaderProgram(), camara() {
         for (const WindowType t : vectorWT) {
             this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
         }
@@ -88,10 +88,14 @@ namespace PAG {
     /**
     * Método para incializar opengl
     */
-    void Renderer::inicializar() {
+    void Renderer::inicializar(GLint w, GLint h) {
         glClearColor(this->colorFondo[r], this->colorFondo[g], this->colorFondo[b], this->colorFondo[alfa]);
         glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glEnable(GL_PROGRAM_POINT_SIZE);
         glEnable(GL_MULTISAMPLE);
+
+        this->camara.setWH(w, h);
     }
 
     /**
@@ -200,6 +204,25 @@ namespace PAG {
                 va_end(args);
                 break;
             }
+            case WindowType::Camera: {
+                std::va_list args;
+                va_start(args, t);
+
+                // Obtenemos los datos del menú de cámara o de los callbacks
+                int tipoCamara = *(va_arg(args, int *));
+                float valorX = *(va_arg(args, float *));
+                float valorY = *(va_arg(args, float *));
+
+                this->camara.movimiento(tipoCamara, valorX, valorY); // Indicamos el movimiento a la cámara
+                glm::mat4 v = this->camara.getV();
+                glm::mat4 pv = this->camara.getPV();
+                glm::mat4 vm = v * this->modeloProcesando;   // Componemos la matriz de visión y modelado para los vectores
+                glm::mat4 pvm = pv * this->modeloProcesando; // Componemos la matriz de proyección, visión y modelado para los vectores
+                this->shaderProgram.actualizarMatrices(vm, pvm);
+
+                va_end(args);
+                break;
+            }
                 // Procesar el resto de tipos de ventana
         }
         // Terminar cualquier otro procesamiento que sea necesario
@@ -246,6 +269,16 @@ namespace PAG {
             .5, -.5, 0, 0.2, 1.0, 0.2,
             .0, .5, 0, 0.0, 0.0, 0.0
         };
+        glm::mat4 m = glm::mat4(1.0f); // Creamos una matriz identidad para que no se modifique el modelo
+        // Aplicar T,R,S (No queremos modificar nada todavia)
+        this->modeloProcesando = m;
+        // Cuando tengamos modelos avanzados se implementará una clase modelo que proporcione su matriz de modelado
+
+        glm::mat4 v = this->camara.getV();
+        glm::mat4 pv = this->camara.getPV();
+        glm::mat4 vm = v * m;   // Componemos la matriz de visión y modelado para los vectores
+        glm::mat4 pvm = pv * m; // Componemos la matriz de proyección, visión y modelado para los vectores
+
         try {
             // VBO ENTRELAZADO
             // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, vectorAtributos)
@@ -254,6 +287,9 @@ namespace PAG {
             // VBO NO ENTRELAZADO
             // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, atributos...)
             this->shaderProgram.creaModelo(NoEntrelazado, indices, 2, sizeof(vertices), 3, vertices, colores);
+
+            // Indicamos las matrices a usar como uniforms
+            this->shaderProgram.actualizarMatrices(vm, pvm);
         } catch (const std::exception& e) {
             std::string salida = e.what();
             salida.append("\n");

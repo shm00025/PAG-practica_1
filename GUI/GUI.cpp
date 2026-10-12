@@ -6,8 +6,10 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 #include "GUI.h"
+#include "VentanaCamaraGUI.h"
 #include "VentanaConsolaGUI.h"
 #include "VentanaFondoGUI.h"
 #include "VentanaSelectorShaderGUI.h"
@@ -20,7 +22,10 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    GUI::GUI() : tipoVentana(WindowType::General), ventanas() {
+    GUI::GUI() : tipoVentana(WindowType::General), ventanas(), cadenaMensaje() {
+        for (const WindowType t : vectorWT) {
+            this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
+        }
     }
 
     /**
@@ -42,7 +47,8 @@ namespace PAG {
 
     void GUI::poner_linea(std::stringstream &linea) {
         // Pasamos el string por referencia para que sea más eficiente
-        warnListeners(linea.str().c_str());
+        this->cadenaMensaje = linea.str();
+        warnListeners(WindowType::Console);
     }
 
     void GUI::inicializar(void* ventana, Listener* renderer) {
@@ -62,7 +68,7 @@ namespace PAG {
         // Consola de texto y errores
         std::vector<Listener*> lista;
         ventanas.push_back(std::make_unique<VentanaConsolaGUI>(lista));
-        this->listeners.push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la consola como nuestro listener
+        this->listeners[WindowType::Console].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la consola como nuestro listener
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         // Metemos la consola como listener del renderer para poder mandar errores
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Console);
@@ -73,6 +79,11 @@ namespace PAG {
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         // Metemos el fondo como listener del renderer (Listeners circulares)
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Background);
+
+        // Selector de tipos de cámara
+        ventanas.push_back(std::make_unique<VentanaCamaraGUI>(lista));
+        this->listeners[WindowType::Camera].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la camara como nuestro listener
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
         // Ventana para la elección del shader
         ventanas.push_back(std::make_unique<VentanaSelectorShaderGUI>(lista));
@@ -92,7 +103,41 @@ namespace PAG {
             ventana->dibujar();
         }
 
-        // Aquí va el dibujado de la escena con instrucciones OpenGL
+        ImGuiIO &io = ImGui::GetIO();
+
+        // Controlamos los eventos
+        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+            clickDerechoPresionado = false;
+        }
+        if (!io.WantCaptureMouse) {
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                clickDerechoPresionado = true; // Registramos que se ha presionado el botón
+                posRaton = ImGui::GetMousePos(); // Registramos la posición en la que se inició el arrastre
+            }
+            if (clickDerechoPresionado) {
+                ImVec2 nuevaPos = ImGui::GetMousePos();
+                difRatonX = posRaton.x - nuevaPos.x;
+                difRatonY = nuevaPos.y - posRaton.y;
+                if (difRatonX != 0 || difRatonY != 0) {
+                    warnListeners(WindowType::Camera); // Avisamos a la cámara de los desplazamientos realizados
+                    posRaton.x = nuevaPos.x;
+                    posRaton.y = nuevaPos.y;
+                }
+            }
+        } else {
+            clickDerechoPresionado = false;
+        }
+
+        // Limpiamos las variaciones y acumulamos las de las teclas, si se anulan no se avisa
+        difRatonX = difRatonY = 0;
+        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) difRatonY += avancePorTecla;
+        if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) difRatonY -= avancePorTecla;
+        if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) difRatonX += avancePorTecla;
+        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) difRatonX -= avancePorTecla;
+        if (difRatonX != 0 || difRatonY != 0) warnListeners(WindowType::Camera);
+
+
+        // Aquí va el dibujado de la escena
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData ( ImGui::GetDrawData() );
     }
@@ -103,9 +148,20 @@ namespace PAG {
         ImGui::DestroyContext ();
     }
 
-    void GUI::warnListeners(const char *cadena) {
-        for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana, cadena);
+    void GUI::warnListeners(WindowType t) {
+        switch (t) {
+            case WindowType::Console: {
+                for (Listener *listener: listeners[WindowType::Console]) {
+                    listener->wakeUp(this->tipoVentana, this->cadenaMensaje.c_str());
+                }
+                break;
+            }
+            case WindowType::Camera: {
+                for (Listener *listener: listeners[WindowType::Camera]) {
+                    listener->wakeUp(this->tipoVentana, &difRatonX, &difRatonY);
+                }
+                break;
+            }
         }
     }
 }

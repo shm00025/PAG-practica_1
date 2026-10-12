@@ -1,6 +1,7 @@
 #include <iostream>
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 
 #include "GUI/GUI.h"
 #include "Render/Renderer.h"
@@ -32,6 +33,31 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     std::stringstream ss;
     ss << "Key callback called" << std::endl;
     PAG::GUI::getInstancia().poner_linea(ss);
+
+    ImGuiKey keyGUI;
+    bool encontrado = false;
+
+    // No he enccontrado una función rápida de traducción de teclas, así que utilizo un switch pequeño
+    switch (key) {
+        case GLFW_KEY_DOWN: { keyGUI = ImGuiKey_DownArrow; encontrado = true; break; }
+        case GLFW_KEY_RIGHT: { keyGUI = ImGuiKey_RightArrow; encontrado = true; break; }
+        case GLFW_KEY_LEFT: { keyGUI = ImGuiKey_LeftArrow; encontrado = true; break; }
+        default: break;
+    }
+
+    if (encontrado) {
+        if (action == GLFW_PRESS) {
+            ImGuiIO& io = ImGui::GetIO ();
+            io.AddKeyEvent(keyGUI, true);
+
+            PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        } else if (action == GLFW_RELEASE) {
+            ImGuiIO& io = ImGui::GetIO ();
+            io.AddKeyEvent(keyGUI, false);
+
+            PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        }
+    }
 }
 
 // - Esta función callback será llamada cada vez que se pulse algún botón
@@ -40,11 +66,19 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     if (action == GLFW_PRESS) {
         std::stringstream ss;
         ss << "Pulsado el botón: " << button << std::endl;
-        PAG::GUI::getInstancia().poner_linea(ss);
+
+        ImGuiIO& io = ImGui::GetIO ();
+        io.AddMouseButtonEvent(button, true);
+
+        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
     } else if (action == GLFW_RELEASE) {
         std::stringstream ss;
         ss << "Soltado el botón: " << button << std::endl;
-        PAG::GUI::getInstancia().poner_linea(ss);
+
+        ImGuiIO& io = ImGui::GetIO ();
+        io.AddMouseButtonEvent(button, false);
+
+        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
     }
 }
 
@@ -69,6 +103,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 
 
 int main() {
+    int w = 1024, h = 576;
+
     std::cout << "Starting Application PAG - Prueba 01" << std::endl;
     // - Este callback hay que registrarlo ANTES de llamar a glfwInit
     glfwSetErrorCallback((GLFWerrorfun) error_callback);
@@ -93,7 +129,7 @@ int main() {
     GLFWwindow *window;
     // - Tamaño, título de la ventana, en ventana y no en pantalla completa,
     // sin compartir recursos con otras ventanas.
-    window = glfwCreateWindow(1024, 576, "PAG Introduction", nullptr, nullptr);
+    window = glfwCreateWindow(w, h, "PAG Introduction", nullptr, nullptr);
     // - Comprobamos si la creación de la ventana ha tenido éxito.
     if (window == nullptr) {
         std::cout << "Failed to open GLFW window" << std::endl;
@@ -136,7 +172,7 @@ int main() {
 
     // Inicializamos OpenGL
     try {
-        PAG::Renderer::getInstancia().inicializar();
+        PAG::Renderer::getInstancia().inicializar(w, h);
     } catch (const std::exception& e) {
         // Capturamos cualquier posible error y lo mostramos en la consola de GUI
         std::stringstream ss;
