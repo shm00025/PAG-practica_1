@@ -123,14 +123,21 @@ namespace PAG {
                     posRaton.x = nuevaPos.x;
                     posRaton.y = nuevaPos.y;
                 }
-                //TODO quizá meter una actualziación de la posición aquí para calcular continuos
             }
         } else {
             clickDerechoPresionado = false;
         }
 
+        // Limpiamos las variaciones y acumulamos las de las teclas, si se anulan no se avisa
+        difRatonX = difRatonY = 0;
+        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) difRatonY += avancePorTecla;
+        if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) difRatonY -= avancePorTecla;
+        if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) difRatonX += avancePorTecla;
+        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) difRatonX -= avancePorTecla;
+        if (difRatonX != 0 || difRatonY != 0) warnListeners(WindowType::Camera);
 
-        // Aquí va el dibujado de la escena con instrucciones OpenGL
+
+        // Aquí va el dibujado de la escena
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData ( ImGui::GetDrawData() );
     }

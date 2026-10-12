@@ -135,7 +135,7 @@ namespace PAG {
                 break;
             }
             case 4: { // Orbit
-                this->orbit(valorX * factorConversionAngulo, valorY * factorConversionAngulo);
+                this->orbit(valorX * factorConversionOrbita, valorY * factorConversionOrbita);
                 break;
             }
             case 5: { // Zoom

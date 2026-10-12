@@ -39,10 +39,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
     // No he enccontrado una función rápida de traducción de teclas, así que utilizo un switch pequeño
     switch (key) {
-        case GLFW_KEY_UP: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
-        case GLFW_KEY_DOWN: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
-        case GLFW_KEY_RIGHT: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
-        case GLFW_KEY_LEFT: { keyGUI = ImGuiKey_UpArrow; encontrado = true; break; }
+        case GLFW_KEY_DOWN: { keyGUI = ImGuiKey_DownArrow; encontrado = true; break; }
+        case GLFW_KEY_RIGHT: { keyGUI = ImGuiKey_RightArrow; encontrado = true; break; }
+        case GLFW_KEY_LEFT: { keyGUI = ImGuiKey_LeftArrow; encontrado = true; break; }
         default: break;
     }
 

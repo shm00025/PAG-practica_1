@@ -26,7 +26,9 @@ const std::vector<WindowType> vectorWT = {Renderer, General, Background, Console
 
 inline const char* opciones_camara[] = { "Pan", "Tilt", "Dolly", "Crane", "Orbit", "Zoom" };
 constexpr float factorConversionAngulo = 0.1;
+constexpr float factorConversionOrbita = 0.2;
 constexpr float factorConversionDesplazamiento = 0.01;
+constexpr float avancePorTecla = 15;
 constexpr float limiteTilt = 89.0f;
 constexpr float minFovY = 0.1f, maxFovY = 90;
 
