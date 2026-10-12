@@ -26,6 +26,43 @@ namespace PAG {
             ImGui::Combo("Item Type", &this->tipoCamara, opciones_camara, IM_COUNTOF(opciones_camara), IM_COUNTOF(opciones_camara));
 
             // TODO CONTINUAR
+            ImVec2 button_sz(40, 40);
+            ImVec2 dummy_button_sz(16, 40);
+
+            valorX = valorY = 0; // Limpiamos los datos
+            switch (this->tipoCamara) {
+                case 0: { // Pan
+                    if (ImGui::Button("<-", button_sz)) valorX -= avancePorTecla;
+                    ImGui::SameLine();
+                    if (ImGui::Button("->", button_sz)) valorX += avancePorTecla;
+                    break;
+                }
+                case 1:
+                case 3:
+                case 5: { // Tilt, Crane, Zoom
+                    ImGui::Dummy(dummy_button_sz); ImGui::SameLine();
+                    if (ImGui::Button("/\\", button_sz)) valorY += avancePorTecla;
+
+                    ImGui::Dummy(dummy_button_sz); ImGui::SameLine();
+                    if (ImGui::Button("\\/", button_sz)) valorY -= avancePorTecla;
+                    break;
+                }
+                case 2:
+                case 4: { // Dolly, Orbit
+                    ImGui::Dummy(dummy_button_sz); ImGui::SameLine();
+                    if (ImGui::Button("/\\", button_sz)) valorY += avancePorTecla;
+
+                    if (ImGui::Button("<-", button_sz)) valorX -= avancePorTecla;
+                    ImGui::SameLine();
+                    if (ImGui::Button("->", button_sz)) valorX += avancePorTecla;
+
+                    ImGui::Dummy(dummy_button_sz); ImGui::SameLine();
+                    if (ImGui::Button("\\/", button_sz)) valorY -= avancePorTecla;
+                    break;
+                }
+            }
+
+            if (valorX != 0 || valorY != 0) warnListeners();
         }
 
         // Si la ventana no está desplegada, Begin devuelve false
