@@ -29,7 +29,7 @@ constexpr float factorConversionAngulo = 0.1;
 constexpr float factorConversionOrbita = 0.2;
 constexpr float factorConversionDesplazamiento = 0.01;
 constexpr float avancePorTecla = 15;
-constexpr float limiteTilt = 89.0f;
+constexpr float epsilonProducto = 0.99f;
 constexpr float minFovY = 0.1f, maxFovY = 90;
 
 #endif //PRACTICA_1_CONSTANTES_H
