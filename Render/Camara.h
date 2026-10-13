@@ -10,17 +10,6 @@
 
 namespace PAG {
     class Camara {
-        float anguloPan = -90;
-        float anguloTilt = 0;
-
-        float anguloLatitud = 90;
-        float anguloLongitud = 0;
-        float radioOrbita = 0;
-        bool necesarioRecalcularRadio = true;
-
-        glm::vec3 traslaciones = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 rotaciones = glm::vec3(0.0f, 0.0f, 0.0f);
-
         glm::vec3 position = glm::vec3(0.0f, 0.0f, 5.0f);
         glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, -1.0f);
         glm::mat4 v, p, pv;

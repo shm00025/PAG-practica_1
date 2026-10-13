@@ -1,32 +1,176 @@
 # PROGRAMACIÓN DE APLICACIONES GRÁFICAS
+
 **Santiago Hervás del moral** `shm00025@red.ujaen.es`
 
 ---
+
 ## Práctica 1 - Configuración
 
 ---
+
 ### &rarr; Ejercicio de reflexión
-El problema planteado se basa en diseñar una clase de C++ que encapsule los métodos relacionados al renderizado de la escena, con la dificultad de que los métodos de instancia de clase de C++ no se pueden usar como callbacks.
 
-Los métodos asociados a las clases no se pueden usar como callbacks dado que dependen de una instancia de la clase. En C existen los métodos estáticos, que no dependen de la instancia, sino de la clase en sí, y no pueden contener llamadas a los métodos o utilizar las variables de instancia. Como las funciones estáticas son independientes, se pueden usar como callbacks.
+El problema planteado se basa en diseñar una clase de C++ que encapsule los métodos relacionados al renderizado de la
+escena, con la dificultad de que los métodos de instancia de clase de C++ no se pueden usar como callbacks.
 
-El segundo problema surge de cómo desacoplar el uso de esta clase. La existencia de los callbacks está resuelta, pero si queremos asociarlos a la ventana deberemos realizar cada una de las llamadas y acceder a los métodos de la clase en un código que no debería conocerlos. Podemos solucionar este problema haciendo que sea la propia clase la que enlace los métodos con la venta, pasando en su constructor un puntero a ésta.
+Los métodos asociados a las clases no se pueden usar como callbacks dado que dependen de una instancia de la clase. En C
+existen los métodos estáticos, que no dependen de la instancia, sino de la clase en sí, y no pueden contener llamadas a
+los métodos o utilizar las variables de instancia. Como las funciones estáticas son independientes, se pueden usar como
+callbacks.
 
-Finalmente, debería ser inicializado por el main cuando lance el sistema gráfico, dado que la clase contiene los callbacks de la ventana, y por lo tanto debe definirse al inicio.
+El segundo problema surge de cómo desacoplar el uso de esta clase. La existencia de los callbacks está resuelta, pero si
+queremos asociarlos a la ventana deberemos realizar cada una de las llamadas y acceder a los métodos de la clase en un
+código que no debería conocerlos. Podemos solucionar este problema haciendo que sea la propia clase la que enlace los
+métodos con la venta, pasando en su constructor un puntero a ésta.
+
+Finalmente, debería ser inicializado por el main cuando lance el sistema gráfico, dado que la clase contiene los
+callbacks de la ventana, y por lo tanto debe definirse al inicio.
 
 A continuación se propone un diseño de esta clase:
 
 ![ver carpeta de diagramas](diagramas/DiagramaUML.png)
 [Enlace al diagrama en la carpeta](diagramas/DiagramaUML.png)
 ---
+
 ## Práctica 3 - Primer Triángulo
 
 ---
-### &rarr; Ejercicio de reflexión
-El problema con la deformación del triángulo surge debido a la transofrmación de viewport. Tras el vertex shader, tenemos un espacio de recorte normalizado, y al aplicarle la transformación de viewport, estas coordenads normalizads se trasladan a coordenadas de pantalla. Si la pantalla cambia de coordenadas límite (Se redimensiona), el cálculo de las traslaciones también se ve afectado.
 
-Como propuestas de solución he pensado en alterar el espacio de visión de la cámara, para que este se adapte al viewport que representa, de manera que si la ventana se alarga, el espacio de visión crezca de manera proprocional, y se mantenga la dimensión alterada.
+### &rarr; Ejercicio de reflexión
+
+El problema con la deformación del triángulo surge debido a la transofrmación de viewport. Tras el vertex shader,
+tenemos un espacio de recorte normalizado, y al aplicarle la transformación de viewport, estas coordenads normalizads se
+trasladan a coordenadas de pantalla. Si la pantalla cambia de coordenadas límite (Se redimensiona), el cálculo de las
+traslaciones también se ve afectado.
+
+Como propuestas de solución he pensado en alterar el espacio de visión de la cámara, para que este se adapte al viewport
+que representa, de manera que si la ventana se alarga, el espacio de visión crezca de manera proprocional, y se mantenga
+la dimensión alterada.
 
 ---
 
-Tras terminar la práctica y completar el ejercicio opcional, creo que la distrosión de la imagen se debe al uso de un shader demasiado simple. Al no tener en cuenta transformaciones y considerar las coordenadas como ya normalizadas, el espacio de recorte depende íntegramente del viewport y por lo tanto, cualquier mínima deformación también deforma el contenido. Al normalizar las posiciones conseguimos que las proporciones se mantengan desde el espacio normalizado.
+Tras terminar la práctica y completar el ejercicio opcional, creo que la distrosión de la imagen se debe al uso de un
+shader demasiado simple. Al no tener en cuenta transformaciones y considerar las coordenadas como ya normalizadas, el
+espacio de recorte depende íntegramente del viewport y por lo tanto, cualquier mínima deformación también deforma el
+contenido. Al normalizar las posiciones conseguimos que las proporciones se mantengan desde el espacio normalizado.
+
+---
+
+## Práctica 5 - Cámara
+
+---
+
+### &rarr; Descripción de la implementación
+En el siguiente diagrama UML podemos ver la definición de las clases y sus relaciones. Solo se han incluido la información y las clases que afectan al funcionamiento de la cámara.
+
+```mermaid
+classDiagram
+    namespace PAG {
+    class Camara {
+        - glm:: vec3 position
+        - glm:: vec3 lookAt
+        - glm:: mat4 v, p, pv
+        - int w, h
+        - float aspectRatio
+        - float zNear, zFar
+        - float fovY
+        
+        - void recalcularMatrices()
+        - void movimientoPanTilt()
+        
+        - void pan(float angulo)
+        - void tilt(float angulo)
+        - void dolly(float espacioX, float espacioZ)
+        - void crane(float espacioY)
+        - void orbit(float anguloLatitud, float anguloLongitud)
+        - void zoom(float angulo)
+        
+        + Camara()
+        + ~Camara()
+        
+        + void setWH(int w, int h)
+        + glm:: mat4 getV()
+        + glm: :mat4 getPV()
+        
+        + void movimiento(int tipoMovimiento, float valorX, float valorY)
+    }
+
+    class Renderer {
+        - static Renderer *instancia
+        - Renderer()
+        - std::map<WindowType, std::vector<Listener*>> listeners
+        
+        + void redimensionar(int width, int height)
+        + void warnListeners(WindowType t)
+        + void wakeUp ( WindowType t, ... ) override
+        + void actualizarCamara()
+    }
+    
+    class VentanaCamaraGUI {
+        - int tipoCamara
+        - float valorX, valorY
+
+        + VentanaCamaraGUI(const std::vector<Listener*> &listeners)
+        + ~VentanaCamaraGUI() override
+        + void dibujar() override
+        + void warnListeners() override
+        + void wakeUp(WindowType t, ...) override
+    }
+    
+    class VentanaGUI {
+        # GUI *padre = nullptr;
+        # std::vector<Listener*> listeners;
+        # float tamTexto;
+        # WindowType tipoVentana;
+        
+        + VentanaGUI(const std::vector<Listener*> &listeners)
+        + virtual ~VentanaGUI()
+        + virtual void dibujar() = 0
+        + void addListener(Listener *listener)
+        + virtual void warnListeners() = 0
+    }
+    
+    class GUI {
+        - static GUI *instancia
+        - GUI()
+        - std::map<WindowType, std::vector<Listener*>> listeners
+        - std::vector<std::unique_ptr<VentanaGUI>> ventanas
+        - bool clickDerechoPresionado
+        - ImVec2 posRaton
+        - float difRatonX, difRatonY
+
+        - void refrescar()
+        - virtual void warnListeners(WindowType t)
+    }
+}
+
+class Listener {
+    + Listener()
+    + virtual ~Listener ()
+    + virtual void wakeUp ( WindowType t, ... ) = 0 
+}
+
+%% Primero definimos la especialización
+VentanaGUI <|-- VentanaCamaraGUI
+
+%% Ahora las implementaciones de listener
+Listener ..|> VentanaCamaraGUI
+Listener ..|> Renderer
+
+%% La composición Renderer-Camara y GUI-VentanaGUI
+Renderer *-- "1" Camara : Contiene
+GUI *-- "*" VentanaGUI : Gestiona
+
+%% Finalmente definimos los listeners
+Renderer --> VentanaCamaraGUI : Escucha
+VentanaCamaraGUI --> GUI : Escucha
+
+```
+
+El funcionamiento es el siguiente:
+
+ - La clase `GUI` captura mediante eventos `IO` las acciones de teclado y pulsaciones de teclas.
+ - `GUI` avisa entonces a `VentanaCamaraGUI`. Esta clase centraliza la comunicación con la cámara real, agrupando los envíos tanto desde `GUI`, como los suyos propios mediante la **interfaz de cámara**.
+ - `VentanaCamaraGUI` envía la información a `Renderer`, que es uno de sus **listeners**.
+ - `Renderer` invoca la función de procesamiento de movimientos de `Camara`, que es `movimiento(int tipoMovimiento, float valorX, float valorY)`.
+ - `VentanaCamaraGUI` gestiona internamente los datos, filtrando por el tipo de movimeinto a usar los valores que se aplican.

@@ -27,6 +27,12 @@ namespace PAG {
 
             // Botón para cargar
             if (ImGui::Button("Load")) warnListeners(); // Avisamos a nuestros listeners (Renderer)
+            ImGui::SameLine();
+            // Botón para cargar preset
+            if (ImGui::Button("Load-PAG03")) {
+                this->nombre = rutaFuenteGLSL;
+                warnListeners(); // Avisamos a nuestros listeners (Renderer)
+            }
         }
 
         // Si la ventana no está desplegada, Begin devuelve false

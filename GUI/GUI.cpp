@@ -116,7 +116,7 @@ namespace PAG {
             }
             if (clickDerechoPresionado) {
                 ImVec2 nuevaPos = ImGui::GetMousePos();
-                difRatonX = posRaton.x - nuevaPos.x;
+                difRatonX = nuevaPos.x - posRaton.x;
                 difRatonY = nuevaPos.y - posRaton.y;
                 if (difRatonX != 0 || difRatonY != 0) {
                     warnListeners(WindowType::Camera); // Avisamos a la cámara de los desplazamientos realizados
