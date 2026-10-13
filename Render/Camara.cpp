@@ -16,8 +16,9 @@ namespace PAG {
     }
 
     void Camara::recalcularMatrices() {
-        // Creamos la matriz con la proyección y la visión para los vértices
-        this->pv = this->p * this->v;
+        // Recalculamos la matriz de visión y las demás
+        this->v = glm::lookAt(this->position, this->position + this->lookAt,glm::vec3(0.0f, 1.0f, 0.0f));
+        this->pv = this->p * this->v; // Creamos la matriz con la proyección y la visión para los vértices
     }
 
     void Camara::setWH(GLint w, GLint h) {
@@ -29,82 +30,81 @@ namespace PAG {
         recalcularMatrices(); // Actualizamos la matriz compuesta de proyección y visión para vértices
     }
 
-    void Camara::movimientoPanTilt() {
-        glm::vec3 direccion; // Calculamos la nueva dirección
-
-        direccion.x = (float) cos(glm::radians(this->anguloPan)) * (float) cos(glm::radians(this->anguloTilt));
-        direccion.y = (float) sin(glm::radians(this->anguloTilt));
-        direccion.z = (float) sin(glm::radians(this->anguloPan)) * (float) cos(glm::radians(this->anguloTilt));
-
-        glm::vec3 frente = glm::normalize(direccion);
-
-        this->v = glm::lookAt(position, position + frente,glm::vec3(0.0f, 1.0f, 0.0f));
-        recalcularMatrices(); // Actualizamos la matriz compuesta de proyección y visión para vértices
-    }
-
     // Eje v o y
     void Camara::pan(GLfloat angulo) {
-        this->anguloPan += angulo; // Actualizamos el ángulo
-        movimientoPanTilt();
+        // Generamos la matriz de rotación
+        glm::mat4 rotacion = glm::rotate(glm::mat4(1.0f), glm::radians(angulo), glm::vec3(0.0f, 1.0f, 0.0f));
+        // Calculamos la rotación del vector de dirección. Debemos transformar las coordenadas a vectores de 4 para que se pueda operar
+        // con las matrices de transformaciones, luego simplemente se recorta la última componente.
+        // Hay que normalizar el dato resultante para que el resto de operaciones se lleven a cabo correctamente, como los productos
+        lookAt = glm::normalize(glm::vec3(rotacion * glm::vec4(lookAt, 0.0f))); // Rellenamos con 0.0f porque es un vector
+
+        recalcularMatrices(); // Recalculamos la matriz de visión y las demás
     }
 
     // Eje u o x
     void Camara::tilt(GLfloat angulo) {
-        this->anguloTilt += angulo; // Actualizamos el ángulo
-        if (this->anguloTilt > limiteTilt) this->anguloTilt = limiteTilt;
-        if (this->anguloTilt < (-1) * limiteTilt) this->anguloTilt = (-1) * limiteTilt;
+        // Generamos la matriz de rotación
+        glm::mat4 rotacion = glm::rotate(glm::mat4(1.0f), glm::radians(angulo), glm::vec3(1.0f, 0.0f, 0.0f));
+        // Calculamos la rotación del vector de dirección. Debemos transformar las coordenadas a vectores de 4 para que se pueda operar
+        // con las matrices de transformaciones, luego simplemente se recorta la última componente.
+        // Hay que normalizar el dato resultante para que el resto de operaciones se lleven a cabo correctamente, como los productos
+        glm::vec3 lookAtRotado = glm::normalize(glm::vec3(rotacion * glm::vec4(lookAt, 0.0f))); // Rellenamos con 0.0f porque es un vector
 
-        movimientoPanTilt();
+        // Comprobamos si estamos mirando hacia arriba
+        float producto = glm::dot(lookAtRotado, glm::vec3(0.0f, 1.0f, 0.0f));
+        if (producto < epsilonProducto && producto > -epsilonProducto) { // Solo aplicamos el movimiento si los vectores no son paralelos, esto es, no miramos hacia arriba o abajo
+            this->lookAt = lookAtRotado; // Actualizamos el vector dirección
+
+            recalcularMatrices(); // Recalculamos la matriz de visión y las demás
+        }
     }
 
     void Camara::dolly(GLfloat espacioX, GLfloat espacioZ) {
-        this->necesarioRecalcularRadio = true;
+        // Calculamos la matriz de traslación
+        glm::mat4 traslacion = glm::translate(glm::mat4(1.0f), glm::vec3(espacioX, 0.0f, espacioZ));
+        // Calculamos la traslación de la posición de la cámara. Debemos transformar las coordenadas a vectores de 4 para que se pueda operar
+        // con las matrices de transformaciones, luego simplemente se recorta la última componente.
+        position = glm::vec3(traslacion * glm::vec4(position, 1.0f)); // Rellenamos con 1.0f porque son coordenadas
 
-        // Calculamos los desplazamientos
-        this->position.x += espacioX;
-        this->position.z += espacioZ;
-        this->lookAt.x += espacioX;
-        this->lookAt.z += espacioZ;
-
-        this->v = glm::lookAt(this->position, lookAt, glm::vec3(0.0f, 1.0f, 0.0f));
-        recalcularMatrices();
+        recalcularMatrices(); // Recalculamos la matriz de visión y las demás
     }
 
     void Camara::crane(GLfloat espacioY) {
-        this->necesarioRecalcularRadio = true;
+        // Calculamos la matriz de traslación
+        glm::mat4 traslacion = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, espacioY, 0.0f));
+        // Calculamos la traslación de la posición de la cámara. Debemos transformar las coordenadas a vectores de 4 para que se pueda operar
+        // con las matrices de transformaciones, luego simplemente se recorta la última componente.
+        position = glm::vec3(traslacion * glm::vec4(position, 1.0f)); // Rellenamos con 1.0f porque son coordenadas
 
-        // Calculamos el desplazamiento
-        this->position.y += espacioY;
-        this->lookAt.y += espacioY;
-
-        this->v = glm::lookAt(this->position, lookAt, glm::vec3(0.0f, 1.0f, 0.0f));
-        recalcularMatrices();
+        recalcularMatrices(); // Recalculamos la matriz de visión y las demás
     }
 
     void Camara::orbit(GLfloat anguloLatitudP, GLfloat anguloLongitudP) {
-        // Actualizamos los ángulos de rotación y limitamos el vertical
-        this->anguloLatitud += anguloLatitudP;
-        this->anguloLongitud += anguloLongitudP;
-        if (this->anguloLongitud > limiteTilt) this->anguloLongitud = limiteTilt;
-        if (this->anguloLongitud < (-1) * limiteTilt) this->anguloLongitud = (-1) * limiteTilt;
+        // Generamos la matriz de rotación en latitud
+        glm::mat4 rotacionLat = glm::rotate(glm::mat4(1.0f), glm::radians(anguloLatitudP), glm::vec3(0.0f, 1.0f, 0.0f));
+        // Calculamos la rotación de la posición de la cámara. Debemos transformar las coordenadas a vectores de 4 para que se pueda operar
+        // con las matrices de transformaciones, luego simplemente se recorta la última componente.
+        position = glm::vec3(rotacionLat * glm::vec4(position, 1.0f)); // Rellenamos con 1.0f porque son coordenadas
 
-        if (necesarioRecalcularRadio) {
-            // Obtenemos la distancia de la cámara al centro de coordenadas
-            glm::vec3 diferencia = - position;
-            this->radioOrbita = sqrt((
-                (diferencia.x * diferencia.x) +
-                (diferencia.y * diferencia.y) +
-                (diferencia.z * diferencia.z)));
-            this->necesarioRecalcularRadio = false;
+        // Obtenemos el vector u de la cámara para rotar con respecto a este
+        glm::vec3 vectorDireccionPreLongitud = glm::normalize(-position);
+        glm::vec3 uCamara = glm::normalize(glm::cross(vectorDireccionPreLongitud, glm::vec3(0.0f, 1.0f, 0.0f)));
+
+        // Calculamos la rotación de longitud
+        glm::mat4 rotacionLon = glm::rotate(glm::mat4(1.0f), glm::radians(anguloLongitudP), uCamara);
+        glm::vec3 posicionRotada = glm::vec3(rotacionLon * glm::vec4(position, 1.0f));
+
+        // Obtenemos el vector entre el origen de coordenadas y la cámara (Posición en negativo) 0 - a = -a
+        glm::vec3 vectorDireccionPostLongitud = glm::normalize(-posicionRotada);
+        // Comprobamos si estamos mirando hacia arriba
+        float producto = glm::dot(vectorDireccionPostLongitud, glm::vec3(0.0f, 1.0f, 0.0f));
+        if (producto < epsilonProducto && producto > -epsilonProducto) { // Solo aplicamos el movimiento si los vectores no son paralelos, esto es, no miramos hacia arriba o abajo
+            this->position = posicionRotada; // Actualizamos las posiciones
         }
 
-        // Actualizamos las posiciones de la cámara dado que es esta la que rota
-        this->position.x = radioOrbita * (float) cos(glm::radians(this->anguloLatitud)) * (float) cos(glm::radians(this->anguloLongitud));
-        this->position.y = radioOrbita * (float) sin(glm::radians(this->anguloLongitud));
-        this->position.z = radioOrbita * (float) sin(glm::radians(this->anguloLatitud)) * (float) cos(glm::radians(this->anguloLongitud));
-
-        this->v = glm::lookAt(this->position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        recalcularMatrices();
+        lookAt = glm::normalize(-position);
+        recalcularMatrices(); // Recalculamos la matriz de visión y las demás
     }
 
     void Camara::zoom(GLfloat angulo) {
@@ -113,7 +113,7 @@ namespace PAG {
         if (this->fovY > maxFovY) this->fovY = maxFovY;
 
         this->p = glm::perspective(glm::radians(this->fovY), this->aspectRatio, this->zNear, this->zFar);
-        recalcularMatrices(); // Actualizamos la matriz compuesta de proyección y visión para vértices
+        recalcularMatrices(); // Recalculamos la matriz de visión y las demás
     }
 
     void Camara::movimiento(int tipoMovimiento, float valorX, float valorY) {
