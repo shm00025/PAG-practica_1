@@ -281,12 +281,10 @@ namespace PAG {
 
         try {
             // VBO ENTRELAZADO
-            // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, vectorAtributos)
-            //this->shaderProgram.creaModelo(Entrelazado, indices, 2, sizeof(verticesConColor), 6, verticesConColor);
+            //this->shaderProgram.VBOEnt_CoordenadasYColor(indices, sizeof(verticesConColor), 6, verticesConColor);
 
             // VBO NO ENTRELAZADO
-            // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, atributos...)
-            this->shaderProgram.creaModelo(NoEntrelazado, indices, 2, sizeof(vertices), 3, vertices, colores);
+            this->shaderProgram.VBONoEnt_CoordenadasYColor(indices, sizeof(vertices), 3, vertices, colores);
 
             // Indicamos las matrices a usar como uniforms
             this->shaderProgram.actualizarMatrices(vm, pvm);

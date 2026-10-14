@@ -40,6 +40,8 @@ namespace PAG {
 
         void creaShaderProgram(std::string &rutaShader);
         void creaModelo(TipoVBO tipo_vbo, ...);
+        void VBOEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *atributos);
+        void VBONoEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *vertices, GLfloat *colores);
 
         void actualizarMatrices(glm::mat4 vm, glm::mat4 pvm) { this->matVM = vm, this->matPVM = pvm; }
     };

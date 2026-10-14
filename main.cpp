@@ -70,7 +70,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         ImGuiIO& io = ImGui::GetIO ();
         io.AddMouseButtonEvent(button, true);
 
-        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        PAG::GUI::getInstancia().poner_linea(ss);
     } else if (action == GLFW_RELEASE) {
         std::stringstream ss;
         ss << "Soltado el botón: " << button << std::endl;
@@ -78,7 +78,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         ImGuiIO& io = ImGui::GetIO ();
         io.AddMouseButtonEvent(button, false);
 
-        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        PAG::GUI::getInstancia().poner_linea(ss);
     }
 }
 
