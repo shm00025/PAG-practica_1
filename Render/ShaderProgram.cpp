@@ -6,11 +6,9 @@
 #include <GL/gl.h>
 #include <fstream>
 #include <sstream>
-#include <cstdarg>
+#include <iostream>
 
 #include "ShaderProgram.h"
-
-#include <iostream>
 
 std::string cargarShader(TipoShader tipo, std::string &ruta) {
     std::string terminacion, error;
@@ -77,13 +75,6 @@ void consultarCompilacion(GLint id, bool isShader) {
 
 namespace PAG {
     ShaderProgram::~ShaderProgram() {
-        // Recorremos el vector de VBOs de manera inversa por si puediera dar errores
-        for (int i = (this->idVBOs.size() - 1); i >= 0; i--) {
-            if (this->idVBOs[i] != 0) {
-                glDeleteShader(this->idVBOs[i]);
-            }
-        }
-
         if (idVS != 0) {
             glDeleteShader(idVS);
         }
@@ -92,15 +83,6 @@ namespace PAG {
         }
         if (idSP != 0) {
             glDeleteProgram(idSP);
-        }
-        if (idVBO != 0) {
-            glDeleteBuffers(1, &idVBO);
-        }
-        if (idIBO != 0) {
-            glDeleteBuffers(1, &idIBO);
-        }
-        if (idVAO != 0) {
-            glDeleteVertexArrays(1, &idVAO);
         }
     }
 
@@ -122,10 +104,6 @@ namespace PAG {
         {  // El uniform existe y se ha podido localizar correctamente
             glUniformMatrix4fv ( posicion, 1, GL_FALSE, &this->matVM[0][0] );
         }
-
-        glBindVertexArray(idVAO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
     }
 
     /**
@@ -165,161 +143,5 @@ namespace PAG {
             salida.append("\n");
             throw std::runtime_error(salida);
         }
-    }
-/*
-    void ShaderProgram::modeloVBONoEntrelazado(const GLfloat *vertices, const GLfloat *colores, int tamVector, int paso) {
-        // Generamos el primer VBO, el de los vértices
-        glGenBuffers(1, &idVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, idVBO);
-        glBufferData(GL_ARRAY_BUFFER, tamVector * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-
-        // Lo activamos y le damos las dimensiones de los datos
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, paso, GL_FLOAT, GL_FALSE, paso * sizeof(GLfloat), nullptr);
-
-        // Generamos el segundo VBO, el de los colores
-        glGenBuffers(1, &idVBOColor);
-        glBindBuffer(GL_ARRAY_BUFFER, idVBOColor);
-        glBufferData(GL_ARRAY_BUFFER, tamVector * sizeof(GLfloat), colores, GL_STATIC_DRAW);
-
-        // Lo activamos y le damos las dimensiones de los datos
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, paso, GL_FLOAT, GL_FALSE, paso * sizeof(GLfloat), nullptr);
-    }*/
-
-    void ShaderProgram::meterAtributoVBONoEntrelazado(const GLfloat *atributo, int i, int tamVector, int paso) {
-        // Generamos el VBO número i
-        glGenBuffers(1, &this->idVBOs[i]);
-        glBindBuffer(GL_ARRAY_BUFFER, this->idVBOs[i]);
-        glBufferData(GL_ARRAY_BUFFER, tamVector * sizeof(GLfloat), atributo, GL_STATIC_DRAW);
-
-        // Lo activamos y le damos las dimensiones de los datos
-        glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, paso, GL_FLOAT, GL_FALSE, paso * sizeof(GLfloat), nullptr);
-    }
-
-    void ShaderProgram::modeloVBOEntrelazado(const GLfloat *atributo, int tamVector) {
-        // Generamos el VBO para los datos entrelazados
-        glGenBuffers(1, &idVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, idVBO);
-        glBufferData(GL_ARRAY_BUFFER, tamVector * sizeof(GLfloat), atributo, GL_STATIC_DRAW);
-    }
-
-    void ShaderProgram::meterAtributoVBOEntrelazado(int i, int numAtributos, int paso) {
-        int size = paso / numAtributos;
-
-        // Activamos el atributo de los colores e indicamos que es el segundo, que empieza en la tercera posición y que tiene un paso de tamaño 6
-        glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, paso * sizeof(GLfloat), (void*)((i * size) * sizeof(GLfloat)));
-    }
-
-    /**
-    * Método para crear el VAO para el modelo a renderizar
-    * @details -> Para VBO entrelazado la forma es TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, vectorAtributos
-    * @details -> Para VBO NO entrelazado la forma es TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, atributos...
-    */
-    void ShaderProgram::creaModelo(TipoVBO tipo_vbo, ...) {
-        try {
-            const GLuint *indices;
-            glGenVertexArrays(1, &idVAO);
-            glBindVertexArray(idVAO);
-
-            switch (tipo_vbo) {
-                case Entrelazado: {
-                    std::va_list args;
-                    va_start(args, tipo_vbo);
-
-                    // Obtenemos los tres vectores necesarios
-                    indices = va_arg(args, GLuint *);
-                    int numAtributos = va_arg(args, int); // Se refiere a la lista (vertcies, colores, normales, ...)
-                    int tamAtributoCompleto = va_arg(args, int); // Longitud de cada atributo (Ej: len(vertices) = len(clores) = ...)
-                    int datosPorVertice = va_arg(args, int); // Datos que tiene cada vértice en el vector general
-                    const GLfloat *atributo = va_arg(args, GLfloat *);
-
-                    va_end(args);
-
-                    // Llamamos al fragmento específico de vbos entrelazados
-                    this->modeloVBOEntrelazado(atributo, tamAtributoCompleto); // Creamos el VBO con los datos
-                    for (int i = 0; i < numAtributos; i++) {
-                        this->meterAtributoVBOEntrelazado(i, numAtributos, datosPorVertice); // Indicamos cada atributo
-                    }
-                    break;
-                }
-                case NoEntrelazado: {
-                    std::va_list args;
-                    va_start(args, tipo_vbo);
-
-                    // Obtenemos los tres vectores necesarios
-                    indices = va_arg(args, GLuint *);
-                    int numAtributos = va_arg(args, int); // Se refiere a la lista (vertcies, colores, normales, ...)
-                    int tamAtributoCompleto = va_arg(args, int); // Longitud de cada atributo (Ej: len(vertices) = len(clores) = ...)
-                    int datosPorVertice = va_arg(args, int); // Datos que tiene cada vértice en cada atributo
-
-                    // Creamos espacio para todos los atributos
-                    this->idVBOs = std::vector<GLuint>(numAtributos, 0);
-
-                    // Creamos una entrada para cada atributo
-                    int numeroAtributo = 0;
-                    for (int i = 0; i < numAtributos; i++) {
-                        const GLfloat *atributo = va_arg(args, GLfloat *);
-                        if (atributo) {
-                            this->meterAtributoVBONoEntrelazado(atributo, numeroAtributo, tamAtributoCompleto, datosPorVertice);
-                            numeroAtributo++;
-                        } else {
-                            throw std::runtime_error("[error]: Se ha definido un atributo nulo para el modelo.");
-                        }
-                    }
-
-                    va_end(args);
-                    break;
-                }
-            }
-
-            // Creamos y activamos el IBO
-            glGenBuffers(1, &idIBO);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
-        } catch (const std::exception& e) {
-            std::string salida = e.what();
-            salida.append("\n");
-            throw std::runtime_error(salida);
-        }
-    }
-
-    void ShaderProgram::VBOEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *atributos) {
-        int numAtributos = 2; // Porque solo usamos coordenadas y color
-
-        glGenVertexArrays(1, &idVAO);
-        glBindVertexArray(idVAO);
-
-        // Llamamos al fragmento específico de vbos entrelazados
-        this->modeloVBOEntrelazado(atributos, tamAtributoCompleto); // Creamos el VBO con los datos
-        this->meterAtributoVBOEntrelazado(0, numAtributos, datosPorVertice); // Indicamos cada atributo
-        this->meterAtributoVBOEntrelazado(1, numAtributos, datosPorVertice); // Indicamos cada atributo
-
-        // Creamos y activamos el IBO
-        glGenBuffers(1, &idIBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
-    }
-
-    void ShaderProgram::VBONoEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *vertices, GLfloat *colores) {
-        int numAtributos = 2; // Porque solo usamos coordenadas y color
-
-        glGenVertexArrays(1, &idVAO);
-        glBindVertexArray(idVAO);
-
-        // Creamos espacio para todos los atributos
-        this->idVBOs = std::vector<GLuint>(numAtributos, 0);
-
-        // Creamos una entrada para cada atributo
-        this->meterAtributoVBONoEntrelazado(vertices, 0, tamAtributoCompleto, datosPorVertice);
-        this->meterAtributoVBONoEntrelazado(colores, 1, tamAtributoCompleto, datosPorVertice);
-
-        // Creamos y activamos el IBO
-        glGenBuffers(1, &idIBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
     }
 }

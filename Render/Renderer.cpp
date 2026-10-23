@@ -63,7 +63,7 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), shaderProgram(), camara() {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), camara() {
         for (const WindowType t : vectorWT) {
             this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
         }
@@ -103,7 +103,7 @@ namespace PAG {
     */
     void Renderer::refrescar() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        this->shaderProgram.refrescar();
+        this->modelo.refrescar();
     }
 
     void Renderer::redimensionar(int width, int height) {
@@ -184,18 +184,21 @@ namespace PAG {
                 va_end(args);
                 break;
             }
-            case WindowType::ShaderSelector: {
+            case WindowType::ModelCreator: {
                 std::va_list args;
                 va_start(args, t);
 
                 // Seleccionamos el nombre
-                char *nombreShader = va_arg(args, char *);
-                std::string nombreString(nombreShader);
+                //char *rutaModelo = va_arg(args, char *);
+                char *rutaShader = va_arg(args, char *);
+                //std::string modeloString(rutaModelo);
+                std::string shaderString(rutaShader);
 
                 // Creamos los datos
                 try {
-                    creaShaderProgram(nombreString);
-                    creaModelo();
+                    //creaModelo(modeloString, shaderString);
+                    std::string rutaPrueba = "../modelos/Mandalorian.obj";
+                    creaModelo(rutaPrueba, shaderString);
                 } catch (const std::exception& e) {
                     this->mensajeError = e.what();
                     warnListeners(WindowType::Console);
@@ -216,9 +219,7 @@ namespace PAG {
                 this->camara.movimiento(tipoCamara, valorX, valorY); // Indicamos el movimiento a la cámara
                 glm::mat4 v = this->camara.getV();
                 glm::mat4 pv = this->camara.getPV();
-                glm::mat4 vm = v * this->modeloProcesando;   // Componemos la matriz de visión y modelado para los vectores
-                glm::mat4 pvm = pv * this->modeloProcesando; // Componemos la matriz de proyección, visión y modelado para los vectores
-                this->shaderProgram.actualizarMatrices(vm, pvm);
+                this->modelo.actualizarMatrices(v, pv);
 
                 va_end(args);
                 break;
@@ -234,60 +235,14 @@ namespace PAG {
     }
 
     /**
-    * Método para crear, compilar y enlazar el shader program
-    * @note No se incluye ninguna comprobación de errores
-    */
-    void Renderer::creaShaderProgram(std::string &rutaShader) {
-        try {
-            // Creamos el shader program
-            shaderProgram.creaShaderProgram(rutaShader);
-        } catch (const std::exception& e) {
-            std::string salida = e.what();
-            salida.append("\n");
-            throw std::runtime_error(salida);
-        }
-    }
-
-    /**
     * Método para crear el VAO para el modelo a renderizar
     * @note No se incluye ninguna comprobación de errores
     */
-    void Renderer::creaModelo() {
-        GLuint indices[] = {0, 1, 2};
-        GLfloat vertices[] = {
-            -.5, -.5, 0,
-            .5, -.5, 0,
-            .0, .5, 0
-        };
-        GLfloat colores[] = {
-            1.0, 0.6, 0.8,
-            0.2, 1.0, 0.2,
-            0.0, 0.0, 0.0
-        };
-        GLfloat verticesConColor[] = {
-            -.5, -.5, 0, 1.0, 0.6, 0.8,
-            .5, -.5, 0, 0.2, 1.0, 0.2,
-            .0, .5, 0, 0.0, 0.0, 0.0
-        };
-        glm::mat4 m = glm::mat4(1.0f); // Creamos una matriz identidad para que no se modifique el modelo
-        // Aplicar T,R,S (No queremos modificar nada todavia)
-        this->modeloProcesando = m;
-        // Cuando tengamos modelos avanzados se implementará una clase modelo que proporcione su matriz de modelado
-
-        glm::mat4 v = this->camara.getV();
-        glm::mat4 pv = this->camara.getPV();
-        glm::mat4 vm = v * m;   // Componemos la matriz de visión y modelado para los vectores
-        glm::mat4 pvm = pv * m; // Componemos la matriz de proyección, visión y modelado para los vectores
-
+    void Renderer::creaModelo(std::string &rutaOBJ, std::string &rutaShader) {
         try {
-            // VBO ENTRELAZADO
-            //this->shaderProgram.VBOEnt_CoordenadasYColor(indices, sizeof(verticesConColor), 6, verticesConColor);
-
-            // VBO NO ENTRELAZADO
-            this->shaderProgram.VBONoEnt_CoordenadasYColor(indices, sizeof(vertices), 3, vertices, colores);
-
-            // Indicamos las matrices a usar como uniforms
-            this->shaderProgram.actualizarMatrices(vm, pvm);
+            //modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::Entrelazado);
+            modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::NoEntrelazado);
+            modelo.actualizarMatrices(camara.getV(), camara.getPV());
         } catch (const std::exception& e) {
             std::string salida = e.what();
             salida.append("\n");

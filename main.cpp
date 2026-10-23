@@ -1,10 +1,12 @@
 #include <iostream>
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
-#include <GLFW/glfw3.h>
+
 #include <imgui.h>
 
 #include "GUI/GUI.h"
 #include "Render/Renderer.h"
+
+#include <GLFW/glfw3.h>
 
 // ----------- FUNCIONES DEL GUIÓN -----------
 // - Esta función callback será llamada cuando GLFW produzca algún error

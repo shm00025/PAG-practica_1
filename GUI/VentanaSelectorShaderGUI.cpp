@@ -11,7 +11,7 @@
 
 namespace PAG {
     VentanaSelectorShaderGUI::VentanaSelectorShaderGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners) {
-        this->tipoVentana = WindowType::ShaderSelector;
+        this->tipoVentana = WindowType::ModelCreator;
     };
 
     void VentanaSelectorShaderGUI::dibujar() {

@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 
-#include "ShaderProgram.h"
+#include "Modelo.h"
 #include "Camara.h"
 #include "../listener.h"
 
@@ -29,12 +29,10 @@ namespace PAG {
         WindowType tipoVentana;
         std::map<WindowType, std::vector<Listener*>> listeners;
 
-        glm::mat4 modeloProcesando; // Cambiar por una EEDD cuando haya varios modelos
-
-        ShaderProgram shaderProgram;
         std::string mensajeError = "";
 
         Camara camara;
+        Modelo modelo;
 
     public:
         virtual ~Renderer ();
@@ -51,10 +49,8 @@ namespace PAG {
         void addListener(Listener *listener, WindowType tipo);
         void wakeUp ( WindowType t, ... ) override;
 
-        void creaShaderProgram(std::string &rutaShader);
-        void creaModelo();
+        void creaModelo(std::string &rutaOBJ, std::string &rutaShader);
 
-        // TODO funcion que recibe datos desde la ventana de la interfaz de cámara de imgui y avisa a la cámara y después envía las nuevas matrices al shader program
         void actualizarCamara();
 
         int get_gladLoadGLLoader(void* procAddr);

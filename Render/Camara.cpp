@@ -81,18 +81,23 @@ namespace PAG {
     }
 
     void Camara::orbit(GLfloat anguloLatitudP, GLfloat anguloLongitudP) {
+        // Obtenemos los vectores de la cámara
+        glm::vec3 n = glm::normalize(-position); // Normalizamos e invertimos el vector que mira al centro
+        glm::vec3 u = glm::normalize(glm::cross(n, glm::vec3(0.0f, 1.0f, 0.0f))); // Obtenemos u como n * Y
+        glm::vec3 v = glm::normalize(glm::cross(n, u)); // Obtenemos v como n * u
+
         // Generamos la matriz de rotación en latitud
-        glm::mat4 rotacionLat = glm::rotate(glm::mat4(1.0f), glm::radians(anguloLatitudP), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotacionLat = glm::rotate(glm::mat4(1.0f), glm::radians(anguloLatitudP), v);
         // Calculamos la rotación de la posición de la cámara. Debemos transformar las coordenadas a vectores de 4 para que se pueda operar
         // con las matrices de transformaciones, luego simplemente se recorta la última componente.
         position = glm::vec3(rotacionLat * glm::vec4(position, 1.0f)); // Rellenamos con 1.0f porque son coordenadas
 
         // Obtenemos el vector u de la cámara para rotar con respecto a este
         glm::vec3 vectorDireccionPreLongitud = glm::normalize(-position);
-        glm::vec3 uCamara = glm::normalize(glm::cross(vectorDireccionPreLongitud, glm::vec3(0.0f, 1.0f, 0.0f)));
+        u = glm::normalize(glm::cross(vectorDireccionPreLongitud, glm::vec3(0.0f, 1.0f, 0.0f)));
 
         // Calculamos la rotación de longitud
-        glm::mat4 rotacionLon = glm::rotate(glm::mat4(1.0f), glm::radians(anguloLongitudP), uCamara);
+        glm::mat4 rotacionLon = glm::rotate(glm::mat4(1.0f), glm::radians(anguloLongitudP), u);
         glm::vec3 posicionRotada = glm::vec3(rotacionLon * glm::vec4(position, 1.0f));
 
         // Obtenemos el vector entre el origen de coordenadas y la cámara (Posición en negativo) 0 - a = -a

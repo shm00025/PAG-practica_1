@@ -21,8 +21,8 @@ constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
 constexpr float margenInferior = 0, margenSuperior = 1;
 
 // Indicamos los tipos de ventana que tenemos actualmente en el sistema
-enum WindowType {Renderer, General, Background, Console, TextSize, ShaderSelector, Camera};
-const std::vector<WindowType> vectorWT = {Renderer, General, Background, Console, TextSize, ShaderSelector, Camera};
+enum WindowType {Renderer, General, Background, Console, TextSize, ModelCreator, Camera};
+const std::vector<WindowType> vectorWT = {Renderer, General, Background, Console, TextSize, ModelCreator, Camera};
 
 inline const char* opciones_camara[] = { "Pan", "Tilt", "Dolly", "Crane", "Orbit", "Zoom" };
 constexpr float factorConversionAngulo = 0.1;
