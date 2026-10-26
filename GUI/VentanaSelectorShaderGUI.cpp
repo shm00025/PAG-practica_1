@@ -21,7 +21,7 @@ namespace PAG {
     void VentanaSelectorShaderGUI::dibujar() {
         // Posición de la ventana
         ImGui::SetNextWindowPos(ImVec2(10, 200), ImGuiCond_Once);
-        ImVec2 dummy_sz(40, 40); // Tamaño del espacio entre los cargadores y el lanzador
+        ImVec2 dummy_sz(20, 20); // Tamaño del espacio entre los cargadores y el lanzador
 
         if (ImGui::Begin("ShaderSelector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada
@@ -75,8 +75,9 @@ namespace PAG {
     void VentanaSelectorShaderGUI::warnListeners() {
         const char *cadenaShader = this->nombreShader.c_str();
         const char *cadenaModelo = this->rutaModelo.c_str();
+        const char *cadenaNombre = this->nombreModelo.c_str();
         for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana, cadenaShader, cadenaModelo);
+            listener->wakeUp(this->tipoVentana, cadenaShader, cadenaModelo, cadenaNombre);
         }
     }
 

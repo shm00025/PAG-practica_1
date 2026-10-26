@@ -131,7 +131,7 @@ namespace PAG {
                 << ")" << std::endl;
         bool sentido = yoffset > 0;
         ss << "Override: " << (sentido ? "False" : "True") << std::endl;
-        this->mensajeError = ss.str();
+        this->mensaje_consola = ss.str();
         warnListeners(WindowType::Console);
 
         // Actualizamos el color con la función asociada, de manera que modularizamos el código
@@ -165,7 +165,7 @@ namespace PAG {
             }
             case WindowType::Console: {
                 for (Listener *listener: listeners[t]) {
-                    const char *cadena = this->mensajeError.c_str();
+                    const char *cadena = this->mensaje_consola.c_str();
                     listener->wakeUp(this->tipoVentana, cadena);
                 }
                 break;
@@ -191,14 +191,18 @@ namespace PAG {
                 // Seleccionamos el nombre
                 char *rutaShader = va_arg(args, char *);
                 char *rutaModelo = va_arg(args, char *);
+                char *nombreModelo = va_arg(args, char *);
                 std::string shaderString(rutaShader);
                 std::string modeloString(rutaModelo);
+                std::string nombreModeloS(nombreModelo);
 
                 // Creamos los datos
                 try {
                     creaModelo(modeloString, shaderString);
+                    this->mensaje_consola = "\nCargando el modelo " + nombreModeloS + " con el shader " + shaderString + ".\n\n";
+                    warnListeners(WindowType::Console); // Indicamos la acción por la consola
                 } catch (const std::exception& e) {
-                    this->mensajeError = e.what();
+                    this->mensaje_consola = e.what();
                     warnListeners(WindowType::Console);
                 }
 
@@ -218,6 +222,15 @@ namespace PAG {
                 glm::mat4 v = this->camara.getV();
                 glm::mat4 pv = this->camara.getPV();
                 this->modelo.actualizarMatrices(v, pv);
+
+                if (this->ultimaCamara != tipoCamara) {
+                    this->ultimaCamara = tipoCamara; // Guardamos el cambio
+                    // Indicamos el movimiento por consola
+                    std::stringstream ss;
+                    ss << "Cambio de cámara detectado. Cámara: " << opciones_camara[tipoCamara] << "." << std::endl;
+                    this->mensaje_consola = ss.str();
+                    warnListeners(WindowType::Console);
+                }
 
                 va_end(args);
                 break;

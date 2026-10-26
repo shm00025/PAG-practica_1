@@ -81,13 +81,14 @@ namespace PAG {
         // Metemos el fondo como listener del renderer (Listeners circulares)
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Background);
 
-        // Selector de tipos de cámara
-        ventanas.push_back(std::make_unique<VentanaCamaraGUI>(lista));
-        this->listeners[WindowType::Camera].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la camara como nuestro listener
-        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
-
         // Ventana para la elección del shader
         ventanas.push_back(std::make_unique<VentanaSelectorShaderGUI>(lista));
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
+
+        // Selector de tipos de cámara
+        lista.push_back(dynamic_cast<Listener*>(ventanas.front().get())); // Incluimos la consola como su listener para poder mostrar mensajes
+        ventanas.push_back(std::make_unique<VentanaCamaraGUI>(lista));
+        this->listeners[WindowType::Camera].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la camara como nuestro listener
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
         // Slider para el tamaño del texto

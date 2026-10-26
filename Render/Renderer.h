@@ -29,8 +29,9 @@ namespace PAG {
         WindowType tipoVentana;
         std::map<WindowType, std::vector<Listener*>> listeners;
 
-        std::string mensajeError = "";
+        std::string mensaje_consola = "";
 
+        int ultimaCamara = -1;
         Camara camara;
         Modelo modelo;
 
