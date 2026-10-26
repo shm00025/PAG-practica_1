@@ -5,34 +5,67 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <cstdarg>
+#include <iostream>
 
 #include "VentanaSelectorShaderGUI.h"
 
 
 namespace PAG {
-    VentanaSelectorShaderGUI::VentanaSelectorShaderGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners) {
+    VentanaSelectorShaderGUI::VentanaSelectorShaderGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador() {
         this->tipoVentana = WindowType::ModelCreator;
+        this->buscador.SetTitle("Selecciona el modelo a usar");
+        // Filtramos por obj dado que es la extensión que procesamos
+        this->buscador.SetTypeFilters({".obj"});
     };
 
     void VentanaSelectorShaderGUI::dibujar() {
         // Posición de la ventana
         ImGui::SetNextWindowPos(ImVec2(10, 200), ImGuiCond_Once);
+        ImVec2 dummy_sz(40, 40); // Tamaño del espacio entre los cargadores y el lanzador
 
         if (ImGui::Begin("ShaderSelector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada
             ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
 
             // Dejamos la línea de input
-            ImGui::InputText("##", &this->nombre, ImGuiInputTextFlags_AutoSelectAll);
+            ImGui::InputText("##", &this->nombreShader, ImGuiInputTextFlags_AutoSelectAll);
 
             // Botón para cargar
-            if (ImGui::Button("Load")) warnListeners(); // Avisamos a nuestros listeners (Renderer)
+            if (ImGui::Button("Load")) {
+                this->seleccionShader = true;
+            }
             ImGui::SameLine();
             // Botón para cargar preset
             if (ImGui::Button("Load-PAG03")) {
-                this->nombre = rutaFuenteGLSL;
-                warnListeners(); // Avisamos a nuestros listeners (Renderer)
+                this->nombreShader = rutaFuenteGLSL;
+                this->seleccionShader = true;
             }
+
+            // Dibujamos el buscador
+            this->buscador.Display();
+            // Botón para cargar el modelo
+            if (ImGui::Button("Modelo")) this->buscador.Open();
+            ImGui::SameLine();
+            std::string cadena = (seleccionModelo ? this->nombreModelo : "Aún no hay selección");
+            ImGui::Text(cadena.c_str());
+
+            // Si hay selección la guardamos
+            if (this->buscador.HasSelected()) {
+                std::filesystem::path ruta = this->buscador.GetSelected();
+                this->seleccionModelo = true;
+
+                // Guardamos la selección
+                this->nombreModelo = ruta.filename().string();
+                this->rutaModelo = ruta.string();
+                this->buscador.ClearSelected();
+            }
+
+            ImGui::Dummy(dummy_sz);
+
+            if (this->seleccionShader && this->seleccionModelo)
+                // Botón para realizar la carga del modelo con el shader
+                if (ImGui::Button("Cargar Modelo y Shader"))
+                    warnListeners(); // Avisamos a nuestros listeners (Renderer)
         }
 
         // Si la ventana no está desplegada, Begin devuelve false
@@ -40,9 +73,10 @@ namespace PAG {
     }
 
     void VentanaSelectorShaderGUI::warnListeners() {
-        const char *cadena = this->nombre.c_str();
+        const char *cadenaShader = this->nombreShader.c_str();
+        const char *cadenaModelo = this->rutaModelo.c_str();
         for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana, cadena);
+            listener->wakeUp(this->tipoVentana, cadenaShader, cadenaModelo);
         }
     }
 

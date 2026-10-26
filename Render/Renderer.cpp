@@ -189,16 +189,14 @@ namespace PAG {
                 va_start(args, t);
 
                 // Seleccionamos el nombre
-                //char *rutaModelo = va_arg(args, char *);
                 char *rutaShader = va_arg(args, char *);
-                //std::string modeloString(rutaModelo);
+                char *rutaModelo = va_arg(args, char *);
                 std::string shaderString(rutaShader);
+                std::string modeloString(rutaModelo);
 
                 // Creamos los datos
                 try {
-                    //creaModelo(modeloString, shaderString);
-                    std::string rutaPrueba = "../modelos/Mandalorian.obj";
-                    creaModelo(rutaPrueba, shaderString);
+                    creaModelo(modeloString, shaderString);
                 } catch (const std::exception& e) {
                     this->mensajeError = e.what();
                     warnListeners(WindowType::Console);

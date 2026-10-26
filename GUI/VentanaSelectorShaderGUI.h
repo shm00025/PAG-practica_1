@@ -8,11 +8,17 @@
 #include <string>
 
 #include "VentanaGUI.h"
+#include "imfilebrowser.h"
 
 
 namespace PAG {
     class VentanaSelectorShaderGUI : public VentanaGUI, public Listener {
-        std::string nombre;
+        std::string nombreShader;
+        bool seleccionShader = false;
+        std::string nombreModelo;
+        std::string rutaModelo;
+        bool seleccionModelo = false;
+        ImGui::FileBrowser buscador;
 
     public:
         VentanaSelectorShaderGUI(const std::vector<Listener*> &listeners);
