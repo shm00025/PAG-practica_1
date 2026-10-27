@@ -55,7 +55,7 @@ namespace PAG {
         std::string asignarModelo(std::string &rutaOBJ, std::string &rutaShader, TipoVBO tipo);
         void actualizarMatrices(glm::mat4 v, glm::mat4 pv);
 
-        void transformar(TipoTransf t, glm::vec3 valores);
+        void transformar(int t, glm::vec3 valores);
         void refrescar();
 
         void VBOEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *atributos);

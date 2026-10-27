@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 
+#include "VentanaGestionModelosGUI.h"
 #include "../listener.h"
 #include "VentanaGUI.h"
 
@@ -24,6 +25,8 @@ namespace PAG {
         std::map<WindowType, std::vector<Listener*>> listeners;
 
         std::vector<std::unique_ptr<VentanaGUI>> ventanas;
+
+        VentanaGestionModelosGUI *gestorModelos;
 
         std::string cadenaMensaje;
         bool clickDerechoPresionado = false;

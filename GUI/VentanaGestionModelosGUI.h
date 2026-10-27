@@ -24,13 +24,21 @@ namespace PAG {
         bool borrar = false;
         std::set<std::string> modelos; // Set de nombre de modelos
 
+        int accion = Carga;
+        int transformacion = Traslacion;
+        char valorTX[32], valorTY[32], valorTZ[32];
+        bool moviendoModelos = false;
+
         void dibujarVentanaModelos();
+        void dibujarVentanaTransformacion();
 
     public:
         VentanaGestionModelosGUI(const std::vector<Listener*> &listeners);
         ~VentanaGestionModelosGUI() override = default;
 
         void dibujar() override;
+
+        bool getFlechasLibres() { return !this->moviendoModelos; }
 
         void warnListeners() override;
         void wakeUp(WindowType t, ...) override;

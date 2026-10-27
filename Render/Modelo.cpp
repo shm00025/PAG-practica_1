@@ -195,9 +195,9 @@ namespace PAG {
 
         // Aplicamos la transformación aleatoria
         glm::vec3 valores = glm::vec3(
-            (factorEscaladoMA * (std::rand() % margenAleatorio)),
-            (factorEscaladoMA * (std::rand() % margenAleatorio)),
-            (factorEscaladoMA * (std::rand() % margenAleatorio))
+            (factorEscaladoMA * (std::rand() % margenAleatorio) * (std::rand() % 2 == 0 ? (-1) : 1)),
+            (factorEscaladoMA * (std::rand() % margenAleatorio) * (std::rand() % 2 == 0 ? (-1) : 1)),
+            (factorEscaladoMA * (std::rand() % margenAleatorio) * (std::rand() % 2 == 0 ? (-1) : 1))
         );
         transformar(Traslacion, valores);
 
@@ -208,12 +208,26 @@ namespace PAG {
         return ss.str();
     }
 
-    void Modelo::transformar(TipoTransf t, glm::vec3 valores) {
+    void Modelo::transformar(int t, glm::vec3 valores) {
         // Hacemos los cambios pertinentes a la matriz de modelado
         switch (t) {
             case Traslacion: {
                 // Aplicamos la traslación a la matriz de modelado
                 this->mModelado = glm::translate(this->mModelado, valores);
+
+                break;
+            }
+            case Escalado: {
+                // Aplicamos el escalado a la matriz de modelado
+                this->mModelado = glm::scale(this->mModelado, valores);
+
+                break;
+            }
+            case Rotacion: {
+                // Aplicamos cada rotación por separado a la matriz de modelado
+                this->mModelado = glm::rotate(this->mModelado, glm::radians(valores.x), glm::vec3(1.0f, 0.0f, 0.0f));
+                this->mModelado = glm::rotate(this->mModelado, glm::radians(valores.y), glm::vec3(0.0f, 1.0f, 0.0f));
+                this->mModelado = glm::rotate(this->mModelado, glm::radians(valores.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
                 break;
             }

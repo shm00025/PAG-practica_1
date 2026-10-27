@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <cstdarg>
+#include <cstdlib>
 #include <iostream>
 
 #include "VentanaGestionModelosGUI.h"
@@ -20,7 +21,7 @@ namespace PAG {
 
     void VentanaGestionModelosGUI::dibujarVentanaModelos() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(500, 200), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(700, 200), ImGuiCond_Once);
         ImVec2 dummy_sz(20, 20); // Tamaño del espacio entre los cargadores y el lanzador
 
         if (ImGui::Begin("Gestion Modelos", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -29,6 +30,8 @@ namespace PAG {
 
             // Recorremos la lista de modelos
             for (const std::string &modelo : this->modelos) {
+                ImGui::PushID(modelo.c_str()); // Damos un identificador propio (el nombre del modelo)
+
                 ImGui::Text(modelo.c_str());
                 ImGui::SameLine();
                 if (ImGui::Button("Borrar")) {
@@ -43,9 +46,69 @@ namespace PAG {
                     this->seleccionModelo = false;
 
                     // Avisamos al renderer
+                    this->accion = Borrado;
                     warnListeners();
                 }
+
+                // Botón para transformar el modelo
+                ImGui::SameLine();
+                if (ImGui::Button("Transformar")) {
+                    this->nombreModelo = modelo;
+                    this->moviendoModelos = true;
+                }
+
+                ImGui::PopID();
             }
+        }
+
+        // Si la ventana no está desplegada, Begin devuelve false
+        ImGui::End();
+    }
+
+    void VentanaGestionModelosGUI::dibujarVentanaTransformacion() {
+        // Posición de la ventana
+        ImGui::SetNextWindowPos(ImVec2(800, 200), ImGuiCond_Once);
+
+        std::string nombre = "Transformar " + this->nombreModelo;
+        if (ImGui::Begin(nombre.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            // La ventana está desplegada
+            ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
+
+            //Cremaos el menú por coordenada
+            ImGui::Text("X: ");
+            ImGui::SameLine();
+            ImGui::InputText("##x", valorTX, IM_COUNTOF(valorTX), ImGuiInputTextFlags_CharsDecimal);
+
+            ImGui::Text("Y: ");
+            ImGui::SameLine();
+            ImGui::InputText("##y", valorTY, IM_COUNTOF(valorTY), ImGuiInputTextFlags_CharsDecimal);
+
+            ImGui::Text("Z: ");
+            ImGui::SameLine();
+            ImGui::InputText("##z", valorTZ, IM_COUNTOF(valorTZ), ImGuiInputTextFlags_CharsDecimal);
+
+            // Ponemos los botones de transformacion
+            if (ImGui::Button("Trasladar")) {
+                this->accion = Transformacion;
+                this->transformacion = Traslacion;
+                warnListeners();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Escalar")) {
+                this->accion = Transformacion;
+                this->transformacion = Escalado;
+                warnListeners();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Rotar")) {
+                this->accion = Transformacion;
+                this->transformacion = Rotacion;
+                warnListeners();
+            }
+
+            // Botón de cerrar
+            ImGui::Dummy(ImVec2(20, 20));
+            if (ImGui::Button("Cerrar")) this->moviendoModelos = false;
         }
 
         // Si la ventana no está desplegada, Begin devuelve false
@@ -96,11 +159,12 @@ namespace PAG {
 
             ImGui::Dummy(dummy_sz);
 
-            if (this->seleccionShader && this->seleccionModelo) {
+            if (this->seleccionShader && this->seleccionModelo && !this->moviendoModelos) {
                 // Botón para realizar la carga del modelo con el shader
                 if (ImGui::Button("Cargar Modelo y Shader")) {
                     this->borrar = false;
                     this->modelos.emplace(this->nombreModelo);
+                    this->accion = Carga;
                     warnListeners(); // Avisamos a nuestros listeners (Renderer)
 
                     // Limpiamos la selección de modelo, la de shader no hace falta
@@ -115,8 +179,10 @@ namespace PAG {
         ImGui::End();
 
         // Segundo dibujar para la ventana de modelos
-        if (!this->modelos.empty())
-            dibujarVentanaModelos();
+        if (!this->modelos.empty()) dibujarVentanaModelos();
+
+        // Tercero dibujar para el menú de transformacioness
+        if (this->moviendoModelos) dibujarVentanaTransformacion();
     }
 
     void VentanaGestionModelosGUI::warnListeners() {
@@ -124,15 +190,30 @@ namespace PAG {
         const char *cadenaModelo = this->rutaModelo.c_str();
         const char *cadenaNombre = this->nombreModelo.c_str();
 
-        if (this->borrar) {
-            // Borramos el modelo y avisamos
-            this->modelos.erase(this->nombreModelo);
-            for (Listener *listener: listeners) {
-                listener->wakeUp(this->tipoVentana, 1, cadenaNombre);
+        switch (accion) {
+            case Carga: {
+                for (Listener *listener: listeners) {
+                    listener->wakeUp(this->tipoVentana, this->accion, cadenaShader, cadenaModelo, cadenaNombre);
+                }
+                break;
             }
-        } else {
-            for (Listener *listener: listeners) {
-                listener->wakeUp(this->tipoVentana, 0, cadenaShader, cadenaModelo, cadenaNombre);
+            case Borrado: {
+                this->modelos.erase(this->nombreModelo);
+                for (Listener *listener: listeners) {
+                    listener->wakeUp(this->tipoVentana, this->accion, cadenaNombre);
+                }
+                break;
+            }
+            case Transformacion: {
+                float valorX = std::strtof(valorTX, nullptr);
+                float valorY = std::strtof(valorTY, nullptr);
+                float valorZ = std::strtof(valorTZ, nullptr);
+                std::cout << "valores transf " << valorX << ", " << valorY << ", " << valorZ << "." << std::endl;
+                for (Listener *listener: listeners) {
+                    listener->wakeUp(this->tipoVentana, this->accion, cadenaNombre,
+                        this->transformacion, valorX, valorY, valorZ);
+                }
+                break;
             }
         }
     }

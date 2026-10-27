@@ -81,9 +81,10 @@ namespace PAG {
         // Metemos el fondo como listener del renderer (Listeners circulares)
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Background);
 
-        // Ventana para la elección del shader
+        // Ventana para la gestión de modelos y shaders
         ventanas.push_back(std::make_unique<VentanaGestionModelosGUI>(lista));
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
+        this->gestorModelos = dynamic_cast<VentanaGestionModelosGUI *>(ventanas.back().get()); // Lo registramos como el gestor de modelos
 
         // Selector de tipos de cámara
         lista.push_back(dynamic_cast<Listener*>(ventanas.front().get())); // Incluimos la consola como su listener para poder mostrar mensajes
@@ -130,13 +131,16 @@ namespace PAG {
             clickDerechoPresionado = false;
         }
 
-        // Limpiamos las variaciones y acumulamos las de las teclas, si se anulan no se avisa
-        difRatonX = difRatonY = 0;
-        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) difRatonY += avancePorTecla;
-        if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) difRatonY -= avancePorTecla;
-        if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) difRatonX += avancePorTecla;
-        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) difRatonX -= avancePorTecla;
-        if (difRatonX != 0 || difRatonY != 0) warnListeners(WindowType::Camera);
+        // Interrogamos al gestor de modelos si podemos usar las teclas
+        if (this->gestorModelos->getFlechasLibres()) {
+            // Limpiamos las variaciones y acumulamos las de las teclas, si se anulan no se avisa
+            difRatonX = difRatonY = 0;
+            if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) difRatonY += avancePorTecla;
+            if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) difRatonY -= avancePorTecla;
+            if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) difRatonX += avancePorTecla;
+            if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) difRatonX -= avancePorTecla;
+            if (difRatonX != 0 || difRatonY != 0) warnListeners(WindowType::Camera);
+        }
 
 
         // Aquí va el dibujado de la escena

@@ -190,33 +190,54 @@ namespace PAG {
                     std::va_list args;
                     va_start(args, t);
 
-                    // Comprobamos si es un borrado o una carga //TODO =====================
-                    int borrado = va_arg(args, int);
+                    // Comprobamos la accion a realizar
+                    switch (va_arg(args, int)) {
+                        case Carga: {
+                            // Seleccionamos el nombre
+                            char *rutaShader = va_arg(args, char *);
+                            char *rutaModelo = va_arg(args, char *);
+                            char *nombreModelo = va_arg(args, char *);
+                            std::string shaderString(rutaShader);
+                            std::string modeloString(rutaModelo);
+                            std::string nombreModeloS(nombreModelo);
 
-                    if (borrado == 1) {
-                        // Seleccionamos el nombre
-                        char *nombreModelo = va_arg(args, char *);
-                        std::string nombreModeloS(nombreModelo);
+                            // Creamos los datos
+                            creaModelo(nombreModeloS, modeloString, shaderString);
+                            this->mensaje_consola = "\nCargando el modelo " + nombreModeloS + " con el shader " + shaderString + ".\n\n";
+                            break;
+                        }
+                        case Borrado: {
+                            // Seleccionamos el nombre
+                            char *nombreModelo = va_arg(args, char *);
+                            std::string nombreModeloS(nombreModelo);
 
-                        // Borramos los datos
-                        borraModelo(nombreModelo); // TODO IMPLEMENTAR
-                        this->mensaje_consola = "\nBorrando el modelo " + nombreModeloS + ".\n\n";
-                        warnListeners(WindowType::Console); // Indicamos la acción por la consola
-                    } else {
-                        // Seleccionamos el nombre
-                        char *rutaShader = va_arg(args, char *);
-                        char *rutaModelo = va_arg(args, char *);
-                        char *nombreModelo = va_arg(args, char *);
-                        std::string shaderString(rutaShader);
-                        std::string modeloString(rutaModelo);
-                        std::string nombreModeloS(nombreModelo);
+                            // Borramos los datos
+                            borraModelo(nombreModelo);
+                            this->mensaje_consola = "\nBorrando el modelo " + nombreModeloS + ".\n\n";
+                            break;
+                        }
+                        case Transformacion: {
+                            // Seleccionamos la transformación, el nombre y los valores de transformación
+                            char *nombreModelo = va_arg(args, char *);
+                            std::string nombreModeloS(nombreModelo);
 
-                        // Creamos los datos
-                        creaModelo(nombreModeloS, modeloString, shaderString);
-                        this->mensaje_consola = "\nCargando el modelo " + nombreModeloS + " con el shader " + shaderString + ".\n\n";
-                        warnListeners(WindowType::Console); // Indicamos la acción por la consola
+                            int transf = va_arg(args, int);
+                            GLfloat valorX = (GLfloat) va_arg(args, double);
+                            GLfloat valorY = (GLfloat) va_arg(args, double);
+                            GLfloat valorZ = (GLfloat) va_arg(args, double);
+
+                            // Indicamos la transformación al modelo. Al controlar el entrono los modelos suponemos
+                            // que find lo encuentra a la primera sin
+                            this->mensaje_consola = "\nAplicando " + opciones_transformacion[transf]
+                            + " al modelo " + nombreModeloS + ".\n\n";
+                            this->modelos.find(nombreModelo)->second.transformar(
+                                transf, glm::vec3(valorX, valorY, valorZ));
+                            break;
+                        }
                     }
 
+                    // Finalmente indicamos la acción por consola
+                    warnListeners(WindowType::Console);
                     va_end(args);
                 } catch (const std::exception& e) {
                     this->mensaje_consola = e.what();
