@@ -6,13 +6,14 @@
 #define PRACTICA_1_VENTANASELECTORSHADERGUI_H
 
 #include <string>
+#include <set>
 
 #include "VentanaGUI.h"
 #include "imfilebrowser.h"
 
 
 namespace PAG {
-    class VentanaSelectorShaderGUI : public VentanaGUI, public Listener {
+    class VentanaGestionModelosGUI : public VentanaGUI, public Listener {
         std::string nombreShader;
         bool seleccionShader = false;
         std::string nombreModelo;
@@ -20,9 +21,14 @@ namespace PAG {
         bool seleccionModelo = false;
         ImGui::FileBrowser buscador;
 
+        bool borrar = false;
+        std::set<std::string> modelos; // Set de nombre de modelos
+
+        void dibujarVentanaModelos();
+
     public:
-        VentanaSelectorShaderGUI(const std::vector<Listener*> &listeners);
-        ~VentanaSelectorShaderGUI() override = default;
+        VentanaGestionModelosGUI(const std::vector<Listener*> &listeners);
+        ~VentanaGestionModelosGUI() override = default;
 
         void dibujar() override;
 

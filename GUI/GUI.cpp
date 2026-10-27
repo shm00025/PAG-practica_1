@@ -11,7 +11,7 @@
 #include "VentanaCamaraGUI.h"
 #include "VentanaConsolaGUI.h"
 #include "VentanaFondoGUI.h"
-#include "VentanaSelectorShaderGUI.h"
+#include "VentanaGestionModelosGUI.h"
 #include "VentanaTamTexto.h"
 #include "../Render/Renderer.h"
 
@@ -82,7 +82,7 @@ namespace PAG {
         dynamic_cast<Renderer *>(renderer)->addListener(dynamic_cast<Listener*>(ventanas.back().get()), WindowType::Background);
 
         // Ventana para la elección del shader
-        ventanas.push_back(std::make_unique<VentanaSelectorShaderGUI>(lista));
+        ventanas.push_back(std::make_unique<VentanaGestionModelosGUI>(lista));
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
         // Selector de tipos de cámara

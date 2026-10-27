@@ -33,7 +33,12 @@ namespace PAG {
 
         int ultimaCamara = -1;
         Camara camara;
-        Modelo modelo;
+        std::map<std::string, Modelo> modelos;
+
+        void warnListeners(WindowType t);
+
+        void borraModelo(std::string nombreModelo);
+        void creaModelo(std::string nombreModelo, std::string &rutaOBJ, std::string &rutaShader);
 
     public:
         virtual ~Renderer ();
@@ -46,13 +51,8 @@ namespace PAG {
         void cerrar_ventana(void *ventana, int valor);
         void scroll(void* flagsOndas, double xoffset, double yoffset);
 
-        void warnListeners(WindowType t);
         void addListener(Listener *listener, WindowType tipo);
         void wakeUp ( WindowType t, ... ) override;
-
-        void creaModelo(std::string &rutaOBJ, std::string &rutaShader);
-
-        void actualizarCamara();
 
         int get_gladLoadGLLoader(void* procAddr);
         float get_gl_renderer();

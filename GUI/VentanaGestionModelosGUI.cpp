@@ -7,23 +7,57 @@
 #include <cstdarg>
 #include <iostream>
 
-#include "VentanaSelectorShaderGUI.h"
+#include "VentanaGestionModelosGUI.h"
 
 
 namespace PAG {
-    VentanaSelectorShaderGUI::VentanaSelectorShaderGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador() {
+    VentanaGestionModelosGUI::VentanaGestionModelosGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador(), modelos() {
         this->tipoVentana = WindowType::ModelCreator;
         this->buscador.SetTitle("Selecciona el modelo a usar");
         // Filtramos por obj dado que es la extensión que procesamos
         this->buscador.SetTypeFilters({".obj"});
-    };
+    }
 
-    void VentanaSelectorShaderGUI::dibujar() {
+    void VentanaGestionModelosGUI::dibujarVentanaModelos() {
+        // Posición de la ventana
+        ImGui::SetNextWindowPos(ImVec2(500, 200), ImGuiCond_Once);
+        ImVec2 dummy_sz(20, 20); // Tamaño del espacio entre los cargadores y el lanzador
+
+        if (ImGui::Begin("Gestion Modelos", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            // La ventana está desplegada
+            ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
+
+            // Recorremos la lista de modelos
+            for (const std::string &modelo : this->modelos) {
+                ImGui::Text(modelo.c_str());
+                ImGui::SameLine();
+                if (ImGui::Button("Borrar")) {
+                    this->borrar = true;
+                    this->nombreModelo = modelo;
+                    // No hacemos el erase aquí dentro para evitar problemas de continuidad
+
+                    // Limpiamos atributos para evitar problemas
+                    this->rutaModelo = "";
+                    this->seleccionShader = false;
+                    this->seleccionShader = "";
+                    this->seleccionModelo = false;
+
+                    // Avisamos al renderer
+                    warnListeners();
+                }
+            }
+        }
+
+        // Si la ventana no está desplegada, Begin devuelve false
+        ImGui::End();
+    }
+
+    void VentanaGestionModelosGUI::dibujar() {
         // Posición de la ventana
         ImGui::SetNextWindowPos(ImVec2(10, 200), ImGuiCond_Once);
         ImVec2 dummy_sz(20, 20); // Tamaño del espacio entre los cargadores y el lanzador
 
-        if (ImGui::Begin("ShaderSelector", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::Begin("Carga de Modelos", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada
             ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
 
@@ -62,26 +96,48 @@ namespace PAG {
 
             ImGui::Dummy(dummy_sz);
 
-            if (this->seleccionShader && this->seleccionModelo)
+            if (this->seleccionShader && this->seleccionModelo) {
                 // Botón para realizar la carga del modelo con el shader
-                if (ImGui::Button("Cargar Modelo y Shader"))
+                if (ImGui::Button("Cargar Modelo y Shader")) {
+                    this->borrar = false;
+                    this->modelos.emplace(this->nombreModelo);
                     warnListeners(); // Avisamos a nuestros listeners (Renderer)
+
+                    // Limpiamos la selección de modelo, la de shader no hace falta
+                    this->nombreModelo = "";
+                    this->rutaModelo = "";
+                    this->seleccionModelo = false;
+                }
+            }
         }
 
         // Si la ventana no está desplegada, Begin devuelve false
         ImGui::End();
+
+        // Segundo dibujar para la ventana de modelos
+        if (!this->modelos.empty())
+            dibujarVentanaModelos();
     }
 
-    void VentanaSelectorShaderGUI::warnListeners() {
+    void VentanaGestionModelosGUI::warnListeners() {
         const char *cadenaShader = this->nombreShader.c_str();
         const char *cadenaModelo = this->rutaModelo.c_str();
         const char *cadenaNombre = this->nombreModelo.c_str();
-        for (Listener *listener: listeners) {
-            listener->wakeUp(this->tipoVentana, cadenaShader, cadenaModelo, cadenaNombre);
+
+        if (this->borrar) {
+            // Borramos el modelo y avisamos
+            this->modelos.erase(this->nombreModelo);
+            for (Listener *listener: listeners) {
+                listener->wakeUp(this->tipoVentana, 1, cadenaNombre);
+            }
+        } else {
+            for (Listener *listener: listeners) {
+                listener->wakeUp(this->tipoVentana, 0, cadenaShader, cadenaModelo, cadenaNombre);
+            }
         }
     }
 
-    void VentanaSelectorShaderGUI::wakeUp(WindowType t, ...) {
+    void VentanaGestionModelosGUI::wakeUp(WindowType t, ...) {
         switch (t) {
             case WindowType::TextSize: {
                 std::va_list args;

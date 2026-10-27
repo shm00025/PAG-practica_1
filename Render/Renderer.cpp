@@ -63,7 +63,7 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), camara() {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), camara(), modelos() {
         for (const WindowType t : vectorWT) {
             this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
         }
@@ -103,7 +103,8 @@ namespace PAG {
     */
     void Renderer::refrescar() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        this->modelo.refrescar();
+        for (std::pair<const std::string, Modelo> &m : this->modelos)
+            m.second.refrescar(); // Refrescamos cada modelo
     }
 
     void Renderer::redimensionar(int width, int height) {
@@ -185,28 +186,42 @@ namespace PAG {
                 break;
             }
             case WindowType::ModelCreator: {
-                std::va_list args;
-                va_start(args, t);
-
-                // Seleccionamos el nombre
-                char *rutaShader = va_arg(args, char *);
-                char *rutaModelo = va_arg(args, char *);
-                char *nombreModelo = va_arg(args, char *);
-                std::string shaderString(rutaShader);
-                std::string modeloString(rutaModelo);
-                std::string nombreModeloS(nombreModelo);
-
-                // Creamos los datos
                 try {
-                    creaModelo(modeloString, shaderString);
-                    this->mensaje_consola = "\nCargando el modelo " + nombreModeloS + " con el shader " + shaderString + ".\n\n";
-                    warnListeners(WindowType::Console); // Indicamos la acción por la consola
+                    std::va_list args;
+                    va_start(args, t);
+
+                    // Comprobamos si es un borrado o una carga //TODO =====================
+                    int borrado = va_arg(args, int);
+
+                    if (borrado == 1) {
+                        // Seleccionamos el nombre
+                        char *nombreModelo = va_arg(args, char *);
+                        std::string nombreModeloS(nombreModelo);
+
+                        // Borramos los datos
+                        borraModelo(nombreModelo); // TODO IMPLEMENTAR
+                        this->mensaje_consola = "\nBorrando el modelo " + nombreModeloS + ".\n\n";
+                        warnListeners(WindowType::Console); // Indicamos la acción por la consola
+                    } else {
+                        // Seleccionamos el nombre
+                        char *rutaShader = va_arg(args, char *);
+                        char *rutaModelo = va_arg(args, char *);
+                        char *nombreModelo = va_arg(args, char *);
+                        std::string shaderString(rutaShader);
+                        std::string modeloString(rutaModelo);
+                        std::string nombreModeloS(nombreModelo);
+
+                        // Creamos los datos
+                        creaModelo(nombreModeloS, modeloString, shaderString);
+                        this->mensaje_consola = "\nCargando el modelo " + nombreModeloS + " con el shader " + shaderString + ".\n\n";
+                        warnListeners(WindowType::Console); // Indicamos la acción por la consola
+                    }
+
+                    va_end(args);
                 } catch (const std::exception& e) {
                     this->mensaje_consola = e.what();
                     warnListeners(WindowType::Console);
                 }
-
-                va_end(args);
                 break;
             }
             case WindowType::Camera: {
@@ -221,7 +236,8 @@ namespace PAG {
                 this->camara.movimiento(tipoCamara, valorX, valorY); // Indicamos el movimiento a la cámara
                 glm::mat4 v = this->camara.getV();
                 glm::mat4 pv = this->camara.getPV();
-                this->modelo.actualizarMatrices(v, pv);
+                for (std::pair<const std::string, Modelo> &m : this->modelos)
+                    m.second.actualizarMatrices(v, pv); // Actualizamos cada modelo
 
                 if (this->ultimaCamara != tipoCamara) {
                     this->ultimaCamara = tipoCamara; // Guardamos el cambio
@@ -245,14 +261,23 @@ namespace PAG {
         return gladLoadGLLoader((GLADloadproc) procAddr);
     }
 
+    void Renderer::borraModelo(std::string nombreModelo) {
+        this->modelos.erase(nombreModelo);
+    }
+
     /**
-    * Método para crear el VAO para el modelo a renderizar
-    * @note No se incluye ninguna comprobación de errores
+    * Método para crear el modelo a renderizar
     */
-    void Renderer::creaModelo(std::string &rutaOBJ, std::string &rutaShader) {
+    void Renderer::creaModelo(std::string nombreModelo, std::string &rutaOBJ, std::string &rutaShader) {
         try {
+            // Insertamos el modelo en la estructura de datos
+            Modelo &modelo = this->modelos[nombreModelo] = Modelo();
+
+            // Elegimos entre VBO Entrelazado y no Entrelazado
             //modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::Entrelazado);
             modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::NoEntrelazado);
+
+            // Indicamos el valor inicial de las matrices de la cámara
             modelo.actualizarMatrices(camara.getV(), camara.getPV());
         } catch (const std::exception& e) {
             std::string salida = e.what();
