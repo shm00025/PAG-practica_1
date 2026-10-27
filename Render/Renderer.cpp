@@ -185,7 +185,7 @@ namespace PAG {
                 va_end(args);
                 break;
             }
-            case WindowType::ModelCreator: {
+            case WindowType::ModelGestor: {
                 try {
                     std::va_list args;
                     va_start(args, t);
@@ -275,7 +275,8 @@ namespace PAG {
 
             // Elegimos entre VBO Entrelazado y no Entrelazado
             //modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::Entrelazado);
-            modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::NoEntrelazado);
+            this->mensaje_consola = modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::NoEntrelazado);
+            warnListeners(WindowType::Console);
 
             // Indicamos el valor inicial de las matrices de la cámara
             modelo.actualizarMatrices(camara.getV(), camara.getPV());

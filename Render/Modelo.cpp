@@ -4,8 +4,12 @@
 
 #include <cstdarg>
 #include <iostream>
+#include <ctime>
+#include <sstream>
 
 #include "Modelo.h"
+
+#include <glm/ext/matrix_transform.hpp>
 
 
 void traducirMatrizAssimpGLM(aiMatrix4x4 mAssimp, glm::mat4 &mat) {
@@ -152,7 +156,7 @@ namespace PAG {
         }
     }
 
-    void Modelo::asignarModelo(std::string &rutaOBJ, std::string &rutaShader, TipoVBO tipo) {
+    std::string Modelo::asignarModelo(std::string &rutaOBJ, std::string &rutaShader, TipoVBO tipo) {
         this->tipoVBO = tipo; // Registramos el tipo de VBO a usar
 
         // Primero creamos el importador e importamos el fichero mediante su ruta
@@ -185,10 +189,35 @@ namespace PAG {
             salida.append("\n");
             throw std::runtime_error(salida);
         }
+
+        // Finalmente como requisito de la práctica trasladamos unas coordenadas aleatorias el modelo
+        std::srand(std::time(0)); // Creamos un aleatorio en función del tiempo
+
+        // Aplicamos la transformación aleatoria
+        glm::vec3 valores = glm::vec3(
+            (factorEscaladoMA * (std::rand() % margenAleatorio)),
+            (factorEscaladoMA * (std::rand() % margenAleatorio)),
+            (factorEscaladoMA * (std::rand() % margenAleatorio))
+        );
+        transformar(Traslacion, valores);
+
+        // Indicamos la traslación
+        std::stringstream ss;
+        ss << "Modelo trasladado aleatoriamente. Valores: (" << valores.x << ", " << valores.y <<
+            ", " << valores.z << ").\n";
+        return ss.str();
     }
 
-    void Modelo::transformar() {
+    void Modelo::transformar(TipoTransf t, glm::vec3 valores) {
         // Hacemos los cambios pertinentes a la matriz de modelado
+        switch (t) {
+            case Traslacion: {
+                // Aplicamos la traslación a la matriz de modelado
+                this->mModelado = glm::translate(this->mModelado, valores);
+
+                break;
+            }
+        }
         this->shaderModelo.actualizarMatrices(this->v * this->mModelado, this->pv * this->mModelado);
     }
 

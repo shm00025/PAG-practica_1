@@ -52,10 +52,10 @@ namespace PAG {
         Modelo() = default;
         ~Modelo();
 
-        void asignarModelo(std::string &rutaOBJ, std::string &rutaShader, TipoVBO tipo);
+        std::string asignarModelo(std::string &rutaOBJ, std::string &rutaShader, TipoVBO tipo);
         void actualizarMatrices(glm::mat4 v, glm::mat4 pv);
 
-        void transformar();
+        void transformar(TipoTransf t, glm::vec3 valores);
         void refrescar();
 
         void VBOEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *atributos);

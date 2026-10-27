@@ -12,7 +12,7 @@
 
 namespace PAG {
     VentanaGestionModelosGUI::VentanaGestionModelosGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador(), modelos() {
-        this->tipoVentana = WindowType::ModelCreator;
+        this->tipoVentana = WindowType::ModelGestor;
         this->buscador.SetTitle("Selecciona el modelo a usar");
         // Filtramos por obj dado que es la extensión que procesamos
         this->buscador.SetTypeFilters({".obj"});
