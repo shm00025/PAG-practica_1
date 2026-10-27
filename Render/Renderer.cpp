@@ -63,7 +63,7 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), shaderProgram(), camara() {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), camara(), modelos() {
         for (const WindowType t : vectorWT) {
             this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
         }
@@ -103,7 +103,8 @@ namespace PAG {
     */
     void Renderer::refrescar() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        this->shaderProgram.refrescar();
+        for (std::pair<const std::string, Modelo> &m : this->modelos)
+            m.second.refrescar(); // Refrescamos cada modelo
     }
 
     void Renderer::redimensionar(int width, int height) {
@@ -131,7 +132,7 @@ namespace PAG {
                 << ")" << std::endl;
         bool sentido = yoffset > 0;
         ss << "Override: " << (sentido ? "False" : "True") << std::endl;
-        this->mensajeError = ss.str();
+        this->mensaje_consola = ss.str();
         warnListeners(WindowType::Console);
 
         // Actualizamos el color con la función asociada, de manera que modularizamos el código
@@ -165,7 +166,7 @@ namespace PAG {
             }
             case WindowType::Console: {
                 for (Listener *listener: listeners[t]) {
-                    const char *cadena = this->mensajeError.c_str();
+                    const char *cadena = this->mensaje_consola.c_str();
                     listener->wakeUp(this->tipoVentana, cadena);
                 }
                 break;
@@ -184,24 +185,64 @@ namespace PAG {
                 va_end(args);
                 break;
             }
-            case WindowType::ShaderSelector: {
-                std::va_list args;
-                va_start(args, t);
-
-                // Seleccionamos el nombre
-                char *nombreShader = va_arg(args, char *);
-                std::string nombreString(nombreShader);
-
-                // Creamos los datos
+            case WindowType::ModelGestor: {
                 try {
-                    creaShaderProgram(nombreString);
-                    creaModelo();
+                    std::va_list args;
+                    va_start(args, t);
+
+                    // Comprobamos la accion a realizar
+                    switch (va_arg(args, int)) {
+                        case Carga: {
+                            // Seleccionamos el nombre
+                            char *rutaShader = va_arg(args, char *);
+                            char *rutaModelo = va_arg(args, char *);
+                            char *nombreModelo = va_arg(args, char *);
+                            std::string shaderString(rutaShader);
+                            std::string modeloString(rutaModelo);
+                            std::string nombreModeloS(nombreModelo);
+
+                            // Creamos los datos
+                            creaModelo(nombreModeloS, modeloString, shaderString);
+                            this->mensaje_consola = "\nCargando el modelo " + nombreModeloS + " con el shader " + shaderString + ".\n\n";
+                            break;
+                        }
+                        case Borrado: {
+                            // Seleccionamos el nombre
+                            char *nombreModelo = va_arg(args, char *);
+                            std::string nombreModeloS(nombreModelo);
+
+                            // Borramos los datos
+                            borraModelo(nombreModelo);
+                            this->mensaje_consola = "\nBorrando el modelo " + nombreModeloS + ".\n\n";
+                            break;
+                        }
+                        case Transformacion: {
+                            // Seleccionamos la transformación, el nombre y los valores de transformación
+                            char *nombreModelo = va_arg(args, char *);
+                            std::string nombreModeloS(nombreModelo);
+
+                            int transf = va_arg(args, int);
+                            GLfloat valorX = (GLfloat) va_arg(args, double);
+                            GLfloat valorY = (GLfloat) va_arg(args, double);
+                            GLfloat valorZ = (GLfloat) va_arg(args, double);
+
+                            // Indicamos la transformación al modelo. Al controlar el entrono los modelos suponemos
+                            // que find lo encuentra a la primera sin
+                            this->mensaje_consola = "\nAplicando " + opciones_transformacion[transf]
+                            + " al modelo " + nombreModeloS + ".\n\n";
+                            this->modelos.find(nombreModelo)->second.transformar(
+                                transf, glm::vec3(valorX, valorY, valorZ));
+                            break;
+                        }
+                    }
+
+                    // Finalmente indicamos la acción por consola
+                    warnListeners(WindowType::Console);
+                    va_end(args);
                 } catch (const std::exception& e) {
-                    this->mensajeError = e.what();
+                    this->mensaje_consola = e.what();
                     warnListeners(WindowType::Console);
                 }
-
-                va_end(args);
                 break;
             }
             case WindowType::Camera: {
@@ -216,9 +257,17 @@ namespace PAG {
                 this->camara.movimiento(tipoCamara, valorX, valorY); // Indicamos el movimiento a la cámara
                 glm::mat4 v = this->camara.getV();
                 glm::mat4 pv = this->camara.getPV();
-                glm::mat4 vm = v * this->modeloProcesando;   // Componemos la matriz de visión y modelado para los vectores
-                glm::mat4 pvm = pv * this->modeloProcesando; // Componemos la matriz de proyección, visión y modelado para los vectores
-                this->shaderProgram.actualizarMatrices(vm, pvm);
+                for (std::pair<const std::string, Modelo> &m : this->modelos)
+                    m.second.actualizarMatrices(v, pv); // Actualizamos cada modelo
+
+                if (this->ultimaCamara != tipoCamara) {
+                    this->ultimaCamara = tipoCamara; // Guardamos el cambio
+                    // Indicamos el movimiento por consola
+                    std::stringstream ss;
+                    ss << "Cambio de cámara detectado. Cámara: " << opciones_camara[tipoCamara] << "." << std::endl;
+                    this->mensaje_consola = ss.str();
+                    warnListeners(WindowType::Console);
+                }
 
                 va_end(args);
                 break;
@@ -233,63 +282,25 @@ namespace PAG {
         return gladLoadGLLoader((GLADloadproc) procAddr);
     }
 
-    /**
-    * Método para crear, compilar y enlazar el shader program
-    * @note No se incluye ninguna comprobación de errores
-    */
-    void Renderer::creaShaderProgram(std::string &rutaShader) {
-        try {
-            // Creamos el shader program
-            shaderProgram.creaShaderProgram(rutaShader);
-        } catch (const std::exception& e) {
-            std::string salida = e.what();
-            salida.append("\n");
-            throw std::runtime_error(salida);
-        }
+    void Renderer::borraModelo(std::string nombreModelo) {
+        this->modelos.erase(nombreModelo);
     }
 
     /**
-    * Método para crear el VAO para el modelo a renderizar
-    * @note No se incluye ninguna comprobación de errores
+    * Método para crear el modelo a renderizar
     */
-    void Renderer::creaModelo() {
-        GLuint indices[] = {0, 1, 2};
-        GLfloat vertices[] = {
-            -.5, -.5, 0,
-            .5, -.5, 0,
-            .0, .5, 0
-        };
-        GLfloat colores[] = {
-            1.0, 0.6, 0.8,
-            0.2, 1.0, 0.2,
-            0.0, 0.0, 0.0
-        };
-        GLfloat verticesConColor[] = {
-            -.5, -.5, 0, 1.0, 0.6, 0.8,
-            .5, -.5, 0, 0.2, 1.0, 0.2,
-            .0, .5, 0, 0.0, 0.0, 0.0
-        };
-        glm::mat4 m = glm::mat4(1.0f); // Creamos una matriz identidad para que no se modifique el modelo
-        // Aplicar T,R,S (No queremos modificar nada todavia)
-        this->modeloProcesando = m;
-        // Cuando tengamos modelos avanzados se implementará una clase modelo que proporcione su matriz de modelado
-
-        glm::mat4 v = this->camara.getV();
-        glm::mat4 pv = this->camara.getPV();
-        glm::mat4 vm = v * m;   // Componemos la matriz de visión y modelado para los vectores
-        glm::mat4 pvm = pv * m; // Componemos la matriz de proyección, visión y modelado para los vectores
-
+    void Renderer::creaModelo(std::string nombreModelo, std::string &rutaOBJ, std::string &rutaShader) {
         try {
-            // VBO ENTRELAZADO
-            // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, vectorAtributos)
-            //this->shaderProgram.creaModelo(Entrelazado, indices, 2, sizeof(verticesConColor), 6, verticesConColor);
+            // Insertamos el modelo en la estructura de datos
+            Modelo &modelo = this->modelos[nombreModelo] = Modelo();
 
-            // VBO NO ENTRELAZADO
-            // Seguimos la estructura (TipoShader, Indices, numAtributos, tamAtributoCompleto, datosPorVertice, atributos...)
-            this->shaderProgram.creaModelo(NoEntrelazado, indices, 2, sizeof(vertices), 3, vertices, colores);
+            // Elegimos entre VBO Entrelazado y no Entrelazado
+            //modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::Entrelazado);
+            this->mensaje_consola = modelo.asignarModelo(rutaOBJ, rutaShader, TipoVBO::NoEntrelazado);
+            warnListeners(WindowType::Console);
 
-            // Indicamos las matrices a usar como uniforms
-            this->shaderProgram.actualizarMatrices(vm, pvm);
+            // Indicamos el valor inicial de las matrices de la cámara
+            modelo.actualizarMatrices(camara.getV(), camara.getPV());
         } catch (const std::exception& e) {
             std::string salida = e.what();
             salida.append("\n");

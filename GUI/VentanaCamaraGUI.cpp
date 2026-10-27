@@ -23,9 +23,8 @@ namespace PAG {
             // La ventana está desplegada
             ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
 
-            ImGui::Combo("Item Type", &this->tipoCamara, opciones_camara, IM_COUNTOF(opciones_camara), IM_COUNTOF(opciones_camara));
+            ImGui::Combo("Selección", &this->tipoCamara, opciones_camara, IM_COUNTOF(opciones_camara), IM_COUNTOF(opciones_camara));
 
-            // TODO CONTINUAR
             ImVec2 button_sz(40, 40);
             ImVec2 dummy_button_sz(16, 40);
 

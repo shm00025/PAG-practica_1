@@ -1,10 +1,12 @@
 #include <iostream>
 // IMPORTANTE: El include de GLAD debe estar siempre ANTES de el de GLFW
-#include <GLFW/glfw3.h>
+
 #include <imgui.h>
 
 #include "GUI/GUI.h"
 #include "Render/Renderer.h"
+
+#include <GLFW/glfw3.h>
 
 // ----------- FUNCIONES DEL GUIÓN -----------
 // - Esta función callback será llamada cuando GLFW produzca algún error
@@ -70,7 +72,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         ImGuiIO& io = ImGui::GetIO ();
         io.AddMouseButtonEvent(button, true);
 
-        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        PAG::GUI::getInstancia().poner_linea(ss);
     } else if (action == GLFW_RELEASE) {
         std::stringstream ss;
         ss << "Soltado el botón: " << button << std::endl;
@@ -78,7 +80,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         ImGuiIO& io = ImGui::GetIO ();
         io.AddMouseButtonEvent(button, false);
 
-        PAG::GUI::getInstancia().poner_linea(ss); //TODO BORRAR
+        PAG::GUI::getInstancia().poner_linea(ss);
     }
 }
 

@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 #include "../constantes.h"
@@ -19,16 +20,6 @@ namespace PAG {
         GLuint idVS = 0; // Identificador del vertex shader
         GLuint idFS = 0; // Identificador del fragment shader
         GLuint idSP = 0; // Identificador del shader program
-        GLuint idVAO = 0; // Identificador del vertex array object
-        GLuint idVBO = 0; // Identificador del vertex buffer object
-        GLuint idIBO = 0; // Identificador del index buffer object
-        std::vector<GLuint> idVBOs;
-
-        void modeloVBOEntrelazado(const GLfloat *atributo, int tamVector);
-        void modeloVBONoEntrelazado(const GLfloat *vertices, const GLfloat *colores, int numElementos, int paso);
-
-        void meterAtributoVBOEntrelazado(int i, int numAtributos, int paso);
-        void meterAtributoVBONoEntrelazado(const GLfloat *atributo, int i, int tamVector, int paso);
 
         glm::mat4 matVM, matPVM;
 
@@ -37,9 +28,7 @@ namespace PAG {
         ~ShaderProgram();
 
         void refrescar();
-
         void creaShaderProgram(std::string &rutaShader);
-        void creaModelo(TipoVBO tipo_vbo, ...);
 
         void actualizarMatrices(glm::mat4 vm, glm::mat4 pvm) { this->matVM = vm, this->matPVM = pvm; }
     };
