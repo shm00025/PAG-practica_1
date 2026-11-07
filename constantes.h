@@ -21,7 +21,7 @@ constexpr float variacionColor[4] = {0.12, 0.06, 0.03, 1.0};
 constexpr float margenInferior = 0, margenSuperior = 1;
 
 // Indicamos los tipos de ventana que tenemos actualmente en el sistema
-enum WindowType {Renderer, General, Background, Console, TextSize, ModelGestor, Camera};
+enum WindowType {Renderer, General, Background, Console, TextSize, ModelGestor, Camera, Materials};
 const std::vector<WindowType> vectorWT = {Renderer, General, Background, Console, TextSize, ModelGestor, Camera};
 
 inline const char* opciones_camara[] = { "Pan", "Tilt", "Dolly", "Crane", "Orbit", "Zoom" };
@@ -37,5 +37,13 @@ constexpr int Traslacion = 0, Escalado = 1, Rotacion = 2;
 inline const std::string opciones_transformacion[] = { "Traslacion", "Escalado", "Rotacion" };
 constexpr int margenAleatorio = 10;
 constexpr float factorEscaladoMA = 0.1f;
+
+// Material
+struct Material {
+    float cAmbiente[3] = {0.0f, 0.0f, 0.0f};
+    float cDifuso[3] = {0.0f, 0.0f, 0.0f};
+    float cEspecular[3] = {0.0f, 0.0f, 0.0f};
+    float eEspecular = 1.0f;
+};
 
 #endif //PRACTICA_1_CONSTANTES_H

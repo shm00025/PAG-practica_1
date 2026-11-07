@@ -241,6 +241,13 @@ namespace PAG {
         this->shaderModelo.actualizarMatrices(v * this->mModelado, pv * this->mModelado);
     }
 
+    void Modelo::asignarMaterial(Material &mat) {
+        // Copiamos el  material proporcionado
+        this->material = mat;
+
+        // TODO asignar el material ocmo tal via opengl
+    }
+
     void Modelo::refrescar() {
         this->shaderModelo.refrescar();
 
