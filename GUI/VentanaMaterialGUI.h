@@ -23,8 +23,11 @@ namespace PAG {
         ImGuiColorEditFlags base_flags = ImGuiColorEditFlags_None;
 
         int matSel = 0;
-        std::string datoSeleccionado = "";
-        std::string nombre_mat = "";
+        std::string datoSeleccionado = "";  // Material seleccionado para editar
+        std::string nombre_mat = "";        // Nombre para un nuevo material
+
+        bool nuevo = true;                  // Indicador de si es nuevo o edición (Depuración por consola)
+        std::string nombre_envio = "";      // Nombre a enviar al gestor de modelos, sea nuevo o edición
 
     public:
         VentanaMaterialGUI(const std::vector<Listener*> &listeners);

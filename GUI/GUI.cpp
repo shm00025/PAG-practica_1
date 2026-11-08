@@ -87,15 +87,17 @@ namespace PAG {
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         this->gestorModelos = dynamic_cast<VentanaGestionModelosGUI *>(ventanas.back().get()); // Lo registramos como el gestor de modelos
 
+        // Selector de materiales
+        std::vector<Listener*> listaSMateriales = {};
+        listaSMateriales.push_back(dynamic_cast<Listener*>(ventanas.front().get())); // Incluimos la consola como su listener para poder mostrar mensajes
+        listaSMateriales.push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Incluimos también el gestor de modelos para enviarle los materiales
+        ventanas.push_back(std::make_unique<VentanaMaterialGUI>(listaSMateriales));
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
+
         // Selector de tipos de cámara
         lista.push_back(dynamic_cast<Listener*>(ventanas.front().get())); // Incluimos la consola como su listener para poder mostrar mensajes
         ventanas.push_back(std::make_unique<VentanaCamaraGUI>(lista));
         this->listeners[WindowType::Camera].push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Aprovechamos para meter la camara como nuestro listener
-        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
-
-        // Selector de materiales
-        lista.push_back(dynamic_cast<Listener*>(ventanas.front().get())); // Incluimos la consola como su listener para poder mostrar mensajes
-        ventanas.push_back(std::make_unique<VentanaMaterialGUI>(lista));
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
         // Slider para el tamaño del texto

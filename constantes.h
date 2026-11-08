@@ -32,7 +32,7 @@ constexpr float avancePorTecla = 15;
 constexpr float epsilonProducto = 0.99f;
 constexpr float minFovY = 0.1f, maxFovY = 90;
 
-constexpr int Carga = 0, Borrado = 1, Transformacion = 2;
+constexpr int Carga = 0, Borrado = 1, Transformacion = 2, envioMaterial = 3;
 constexpr int Traslacion = 0, Escalado = 1, Rotacion = 2;
 inline const std::string opciones_transformacion[] = { "Traslacion", "Escalado", "Rotacion" };
 constexpr int margenAleatorio = 10;

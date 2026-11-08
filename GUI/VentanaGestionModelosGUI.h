@@ -6,6 +6,7 @@
 #define PRACTICA_1_VENTANASELECTORSHADERGUI_H
 
 #include <string>
+#include <map>
 #include <set>
 
 #include "VentanaGUI.h"
@@ -28,6 +29,8 @@ namespace PAG {
         int transformacion = Traslacion;
         char valorTX[32], valorTY[32], valorTZ[32];
         bool moviendoModelos = false;
+
+        std::map<std::string, Material> materiales;
 
         void dibujarVentanaModelos();
         void dibujarVentanaTransformacion();

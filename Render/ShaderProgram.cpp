@@ -87,7 +87,9 @@ namespace PAG {
     }
 
     void ShaderProgram::refrescar() {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        //TODO IMPLEMENTAR DIFERENCIACION
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glUseProgram(idSP);
 
         // Indicamos los uniform a usar en el renderizado del modelo

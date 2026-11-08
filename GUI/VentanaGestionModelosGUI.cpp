@@ -12,7 +12,7 @@
 
 
 namespace PAG {
-    VentanaGestionModelosGUI::VentanaGestionModelosGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador(), modelos() {
+    VentanaGestionModelosGUI::VentanaGestionModelosGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador(), modelos(), materiales() {
         this->tipoVentana = WindowType::ModelGestor;
         this->buscador.SetTitle("Selecciona el modelo a usar");
         // Filtramos por obj dado que es la extensión que procesamos
@@ -215,6 +215,10 @@ namespace PAG {
                 }
                 break;
             }
+            case envioMaterial: {
+                //TODO ENVIAR AL RENDERER
+                break;
+            }
         }
     }
 
@@ -226,6 +230,31 @@ namespace PAG {
 
                 const float* tam = va_arg(args, const float *);
                 if (tam) this->tamTexto = *tam;
+
+                va_end(args);
+                break;
+            }
+            case WindowType::Materials: {
+                std::va_list args;
+                va_start(args, t);
+                Material mat;
+
+                // Obtenemos los datos del material
+                const char* nombre = va_arg(args, const char *);
+                std::string nombreS(nombre);
+                const float* cAmb = va_arg(args, const float*);
+                const float* cDif = va_arg(args, const float*);
+                const float* cEsp = va_arg(args, const float*);
+                const double eEsp = va_arg(args, double);
+
+                // Copiamos los datos al material
+                mat.cAmbiente[0] = cAmb[0]; mat.cAmbiente[1] = cAmb[1]; mat.cAmbiente[2] = cAmb[2];
+                mat.cDifuso[0] = cDif[0]; mat.cDifuso[1] = cDif[1]; mat.cDifuso[2] = cDif[2];
+                mat.cEspecular[0] = cEsp[0]; mat.cEspecular[1] = cEsp[1]; mat.cEspecular[2] = cEsp[2];
+                mat.eEspecular = (float) eEsp;
+
+                // Guardamos el material si es nuevo y actualizamos si ya existía
+                this->materiales[nombreS] = mat;
 
                 va_end(args);
                 break;
