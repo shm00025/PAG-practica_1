@@ -18,7 +18,7 @@ namespace PAG {
         ImVec4 cAmb = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
         ImVec4 cDif = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
         ImVec4 cEsp = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
-        char eEsp[32];
+        char eEsp[32] = {};
 
         ImGuiColorEditFlags base_flags = ImGuiColorEditFlags_None;
 

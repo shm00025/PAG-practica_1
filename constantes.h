@@ -38,6 +38,9 @@ inline const std::string opciones_transformacion[] = { "Traslacion", "Escalado",
 constexpr int margenAleatorio = 10;
 constexpr float factorEscaladoMA = 0.1f;
 
+// Estados del gestor de materiales
+enum EstadoGestor {Libre, Transformaciones, Materiales};
+
 // Material
 struct Material {
     float cAmbiente[3] = {0.0f, 0.0f, 0.0f};
@@ -45,5 +48,7 @@ struct Material {
     float cEspecular[3] = {0.0f, 0.0f, 0.0f};
     float eEspecular = 1.0f;
 };
+inline const char* opciones_visualizacion[] = { "Solido", "Alambre" };
+constexpr int vSolido = 0, vAlambre = 1;
 
 #endif //PRACTICA_1_CONSTANTES_H

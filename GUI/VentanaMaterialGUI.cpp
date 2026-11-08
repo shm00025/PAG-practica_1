@@ -40,7 +40,7 @@ namespace PAG {
 
     void VentanaMaterialGUI::dibujar() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(700, 100), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(650, 100), ImGuiCond_Once);
 
         if (ImGui::Begin("Material", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada

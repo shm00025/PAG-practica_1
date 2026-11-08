@@ -241,9 +241,10 @@ namespace PAG {
         this->shaderModelo.actualizarMatrices(v * this->mModelado, pv * this->mModelado);
     }
 
-    void Modelo::asignarMaterial(Material &mat) {
+    void Modelo::asignarMaterial(Material &mat, int tVisualizacion) {
         // Copiamos el  material proporcionado
         this->material = mat;
+        this->tipoVisualizacion = tVisualizacion;
 
         // TODO asignar el material ocmo tal via opengl
     }
