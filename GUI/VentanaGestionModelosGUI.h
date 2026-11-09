@@ -34,6 +34,7 @@ namespace PAG {
         std::vector<char*> listaMat = {};
         int matSel = 0;
         int visSel = 0;
+        Material defecto;
 
         void dibujarVentanaModelos();
         void dibujarVentanaTransformacion();

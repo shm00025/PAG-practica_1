@@ -25,6 +25,8 @@ namespace PAG {
 
         Material material;
         GLint modoVisualizacion = GL_FILL;
+        void gestionarSubrutinas();
+        void gestionarUniforms();
 
     public:
         ShaderProgram() = default;

@@ -80,7 +80,7 @@ namespace PAG {
 
     void VentanaGestionModelosGUI::dibujarVentanaTransformacion() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(800, 200), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(700, 200), ImGuiCond_Once);
 
         std::string nombre = "Transformar " + this->nombreModelo;
         if (ImGui::Begin(nombre.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -130,16 +130,20 @@ namespace PAG {
 
     void VentanaGestionModelosGUI::dibujarVentanaVisualizacion() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(800, 200), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(700, 200), ImGuiCond_Once);
 
-        std::string nombre = "Transformar " + this->nombreModelo;
+        std::string nombre = "Visualización " + this->nombreModelo;
         if (ImGui::Begin(nombre.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             // La ventana está desplegada
             ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
 
             // Desplegable de materiales
-            char **datos = this->listaMat.data(); // Obtenemos un vector básico para la función de ImGUI
-            ImGui::Combo("Material", &this->matSel, datos, this->listaMat.size(), this->listaMat.size());
+            if (this->listaMat.empty()) {
+                ImGui::Combo("Material", &this->matSel, opciones_vis_defecto, 1);
+            } else {
+                char **datos = this->listaMat.data(); // Obtenemos un vector básico para la función de ImGUI
+                ImGui::Combo("Material", &this->matSel, datos, this->listaMat.size(), this->listaMat.size());
+            }
 
             // Desplegable de modos de visualización
             ImGui::Combo("Selección", &this->visSel, opciones_visualizacion, IM_COUNTOF(opciones_visualizacion), IM_COUNTOF(opciones_visualizacion));
@@ -261,12 +265,19 @@ namespace PAG {
                 break;
             }
             case envioMaterial: {
-                // Obtenemos el material
-                Material mat = this->materiales.find(this->listaMat[this->matSel])->second;
+                // Obtenemos el material por defecto (Basico)
+                Material mat = this->defecto;
+                std::string nombre = "Basico";
+
+                // Si hay materiales enviamos el seleccionado, si no, el basico
+                if (!this->materiales.empty()) {
+                    mat = this->materiales.find(this->listaMat[this->matSel])->second;
+                    nombre = this->listaMat[this->matSel];
+                }
 
                 // Enviamos los datos del material y el tipo de renderizado
                 for (Listener *listener: listeners) {
-                    listener->wakeUp(this->tipoVentana, this->accion, cadenaNombre, this->visSel, this->listaMat[this->matSel],
+                    listener->wakeUp(this->tipoVentana, this->accion, cadenaNombre, this->visSel, nombre.c_str(),
                         mat.cAmbiente, mat.cDifuso, mat.cEspecular, mat.eEspecular);
                 }
 

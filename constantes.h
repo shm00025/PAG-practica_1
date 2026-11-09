@@ -49,6 +49,7 @@ struct Material {
     float eEspecular = 1.0f;
 };
 inline const char* opciones_visualizacion[] = { "Solido", "Alambre" };
+inline const char* opciones_vis_defecto[] = { "Basico" };
 constexpr int vSolido = 0, vAlambre = 1;
 
 #endif //PRACTICA_1_CONSTANTES_H
