@@ -23,6 +23,9 @@ namespace PAG {
 
         glm::mat4 matVM, matPVM;
 
+        Material material;
+        GLint modoVisualizacion = GL_FILL;
+
     public:
         ShaderProgram() = default;
         ~ShaderProgram();
@@ -31,6 +34,7 @@ namespace PAG {
         void creaShaderProgram(std::string &rutaShader);
 
         void actualizarMatrices(glm::mat4 vm, glm::mat4 pvm) { this->matVM = vm, this->matPVM = pvm; }
+        void aplicarMaterial(Material &mat, int mVisualizacion);
     };
 }
 

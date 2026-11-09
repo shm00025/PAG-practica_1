@@ -87,12 +87,16 @@ namespace PAG {
     }
 
     void ShaderProgram::refrescar() {
-        //TODO IMPLEMENTAR DIFERENCIACION
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, this->modoVisualizacion);
         glUseProgram(idSP);
 
+        // Con el shader program activado, buscamos la subrutina
+        GLuint aux = glGetSubroutineIndex(idSP, GL_FRAGMENT_SHADER,
+            (this->modoVisualizacion == GL_FILL ? "solido" : "alambre"));
+        glUniformSubroutinesuiv ( GL_FRAGMENT_SHADER, 1, &aux );
+
         // Indicamos los uniform a usar en el renderizado del modelo
+        // Matriz modelo vista proyección
         std::string nombreUniform = "matrizMVP";
         GLint posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
         if ( posicion != -1 )
@@ -100,12 +104,27 @@ namespace PAG {
             glUniformMatrix4fv ( posicion, 1, GL_FALSE, &this->matPVM[0][0] );
         }
 
+        // Matriz modelo vista
         nombreUniform = "matrizMV";
         posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
         if ( posicion != -1 )
         {  // El uniform existe y se ha podido localizar correctamente
             glUniformMatrix4fv ( posicion, 1, GL_FALSE, &this->matVM[0][0] );
         }
+
+        // Componentes del material
+        nombreUniform = "ka"; // Componente ambiente
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform3fv ( posicion, 1, &this->material.cAmbiente[0] ); }
+        nombreUniform = "kd"; // Componente difusa
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform3fv ( posicion, 1, &this->material.cDifuso[0] ); }
+        nombreUniform = "ks"; // Componente especular
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform3fv ( posicion, 1, &this->material.cEspecular[0] ); }
+        nombreUniform = "eS"; // Exponente especular
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform1f ( posicion, this->material.eEspecular ); }
     }
 
     /**
@@ -145,5 +164,10 @@ namespace PAG {
             salida.append("\n");
             throw std::runtime_error(salida);
         }
+    }
+
+    void ShaderProgram::aplicarMaterial(Material &mat, int mVisualizacion) {
+        this->material = mat;
+        this->modoVisualizacion = (mVisualizacion == vSolido ? GL_FILL : GL_LINE);
     }
 }

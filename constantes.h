@@ -11,7 +11,7 @@
 enum TipoShader {VertexShader, FragmentShader};
 enum TipoVBO {NoEntrelazado, Entrelazado};
 
-const std::string rutaFuenteGLSL = "../shaders/pag03";
+const std::string rutaFuenteGLSL = "../shaders/pag07";
 const std::string sufijoVS = "-vs.glsl";
 const std::string sufijoFS = "-fs.glsl";
 
@@ -43,9 +43,9 @@ enum EstadoGestor {Libre, Transformaciones, Materiales};
 
 // Material
 struct Material {
-    float cAmbiente[3] = {0.0f, 0.0f, 0.0f};
-    float cDifuso[3] = {0.0f, 0.0f, 0.0f};
-    float cEspecular[3] = {0.0f, 0.0f, 0.0f};
+    float cAmbiente[3] = {1.0f, 0.0f, 0.0f};
+    float cDifuso[3] = {1.0f, 0.0f, 0.0f};
+    float cEspecular[3] = {1.0f, 0.0f, 0.0f};
     float eEspecular = 1.0f;
 };
 inline const char* opciones_visualizacion[] = { "Solido", "Alambre" };

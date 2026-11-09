@@ -245,8 +245,7 @@ namespace PAG {
         // Copiamos el  material proporcionado
         this->material = mat;
         this->tipoVisualizacion = tVisualizacion;
-
-        // TODO asignar el material ocmo tal via opengl
+        this->shaderModelo.aplicarMaterial(mat, tVisualizacion);
     }
 
     void Modelo::refrescar() {
