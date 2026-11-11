@@ -281,3 +281,71 @@ A continuación justificaré las partes de la implementación que son no trivial
       cámara, facilitando el movimiento entre las entradas, que están filtradas a valores numéricos.
 - Las clases `Renderer` y `GUI` únicamente se encargan de la orquestación y despliegue de la aplicación, pero la
   funcionalidad en sí queda relegada al conjunto de objetos que manejan.
+
+---
+
+## Práctica 7 - Subrutinas
+
+---
+
+### &rarr; Descripción de la implementación
+
+El diseño de clases y relaciones entre estas viene descrito a continuación en el siguiente diagrama UML. Recortamos unicamente las secciones que influyen en el diseño y aplicación de materiales.
+
+```mermaid
+classDiagram
+    namespace PAG {
+    %% Sistema de OpenGL
+        class Renderer {
+        }
+
+        class Modelo {
+        }
+
+        class ShaderProgram {
+        }
+
+    %% Sistema GUI
+        class GUI {
+        }
+
+        class VentanaGestionModelosGUI {
+        }
+
+        class VentanaMaterialGUI {
+        }
+    }
+
+    class Listener {
+    }
+
+%% Especialización
+    VentanaGUI <|-- VentanaGestionModelosGUI
+    VentanaGUI <|-- VentanaMaterialGUI
+%% Implementaciones de listener
+    Listener ..|> VentanaGestionModelosGUI
+    Listener ..|> VentanaMaterialGUI
+    Listener ..|> Renderer
+%% Composiciones
+    Renderer *-- "*" Modelo: Dibuja
+    Modelo *-- "1" ShaderProgram: Utiliza
+    GUI *-- "*" VentanaGUI: Gestiona
+%% Escuchas
+    Renderer --> VentanaGestionModelosGUI: Escucha
+    VentanaGestionModelosGUI --> VentanaMaterialGUI: Escucha
+
+```
+
+A continuación justificaré las partes de la implementación que son no triviales.
+
+- La creación del **material** se lleva a cabo en la clase `VentanaMaterialGUI`, que nos ofrece un menú de selección de colores para las tres componentes, ambiente, difusa y especular; una entrada numérica para el exponente especular y una para el nombre del material. Una vez creado el material aparece una nueva sección dentro de la ventana, que nos permite seleccionar un material para editarlo.
+- La palicación del **material** a un modelo se ha integrado en el menú de gestión de modelos en la ventana `VentanaGestionModelosGUI`, junto a las opciones de **eliminar** y **transformar**. Este menú nos despliega una ventana de materiales que nos permite seleccionar uno de los que hemos creado, o uno base rojo por defecto, y el modo de visualización del modelo, **sólido** o en **alambre**.
+- `VentanaMaterialGUI` comunica las modificaciones o nuevos materiales de manera incremental a `VentanaGestionModelosGUI`, de manera que cada uno cuenta con una copia local actualizada y las consultas se reducen al mínimo.
+- Se aprovecha la comunicación de `VentanaGestionModelosGUI` con `Renderer` ya implementada para pasar un nuevo tipo de acción, el **envío de material**, asociado a un modelo. Cuando `Renderer` recibe este mensaje, accede al modelo por su mapa interno con el nombre como clave, y le indica el **material** que debe usar y el modo de **visualización** a usar.
+- Finalmente el `Modelo` recibe el material y se lo da a su `ShaderProgram` para las llamadas a OpenGL.
+
+### &rarr; Manual de Usuario
+
+1. Para usar un material primero debemos crearlo en la `VentanaMaterialGUI` mediante los tres campos de color por componente, el exponente especular y un nombre. Una vez creado lo podemos modificar en la nueva sección que aparece.
+2. Con el **material** y un **modelo** creados, debemos acceder a la `VentanaGestionModelosGUI` y desplegar el menú **Material**. Dentro de este seleccionamos un material del desplegable y un modo de visualización y lo aplicamos.
+3. El sistema se actualizarña solo y la visualización de nuestro modelo cambiará a la que hayamos seleccionado.
