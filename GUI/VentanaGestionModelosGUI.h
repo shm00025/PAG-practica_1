@@ -6,6 +6,7 @@
 #define PRACTICA_1_VENTANASELECTORSHADERGUI_H
 
 #include <string>
+#include <map>
 #include <set>
 
 #include "VentanaGUI.h"
@@ -27,18 +28,25 @@ namespace PAG {
         int accion = Carga;
         int transformacion = Traslacion;
         char valorTX[32], valorTY[32], valorTZ[32];
-        bool moviendoModelos = false;
+        EstadoGestor estado = Libre;
+
+        std::map<std::string, Material> materiales;
+        std::vector<char*> listaMat = {};
+        int matSel = 0;
+        int visSel = 0;
+        Material defecto;
 
         void dibujarVentanaModelos();
         void dibujarVentanaTransformacion();
+        void dibujarVentanaVisualizacion();
 
     public:
         VentanaGestionModelosGUI(const std::vector<Listener*> &listeners);
-        ~VentanaGestionModelosGUI() override = default;
+        ~VentanaGestionModelosGUI() override;
 
         void dibujar() override;
 
-        bool getFlechasLibres() { return !this->moviendoModelos; }
+        bool getFlechasLibres() { return this->estado == Libre; }
 
         void warnListeners() override;
         void wakeUp(WindowType t, ...) override;

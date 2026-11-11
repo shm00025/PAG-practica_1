@@ -12,16 +12,22 @@
 
 
 namespace PAG {
-    VentanaGestionModelosGUI::VentanaGestionModelosGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador(), modelos() {
+    VentanaGestionModelosGUI::VentanaGestionModelosGUI(const std::vector<Listener *> &listeners) : VentanaGUI(listeners), buscador(), modelos(), materiales() {
         this->tipoVentana = WindowType::ModelGestor;
         this->buscador.SetTitle("Selecciona el modelo a usar");
         // Filtramos por obj dado que es la extensión que procesamos
         this->buscador.SetTypeFilters({".obj"});
     }
 
+    VentanaGestionModelosGUI::~VentanaGestionModelosGUI() {
+        for (char* opcion : this->listaMat) {
+            free(opcion);
+        }
+    }
+
     void VentanaGestionModelosGUI::dibujarVentanaModelos() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(700, 200), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(650, 200), ImGuiCond_Once);
         ImVec2 dummy_sz(20, 20); // Tamaño del espacio entre los cargadores y el lanzador
 
         if (ImGui::Begin("Gestion Modelos", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -54,7 +60,14 @@ namespace PAG {
                 ImGui::SameLine();
                 if (ImGui::Button("Transformar")) {
                     this->nombreModelo = modelo;
-                    this->moviendoModelos = true;
+                    this->estado = Transformaciones;
+                }
+
+                // Botón para transformar el modelo
+                ImGui::SameLine();
+                if (ImGui::Button("Visualizacion")) {
+                    this->nombreModelo = modelo;
+                    this->estado = Materiales;
                 }
 
                 ImGui::PopID();
@@ -67,7 +80,7 @@ namespace PAG {
 
     void VentanaGestionModelosGUI::dibujarVentanaTransformacion() {
         // Posición de la ventana
-        ImGui::SetNextWindowPos(ImVec2(800, 200), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(700, 200), ImGuiCond_Once);
 
         std::string nombre = "Transformar " + this->nombreModelo;
         if (ImGui::Begin(nombre.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -108,7 +121,41 @@ namespace PAG {
 
             // Botón de cerrar
             ImGui::Dummy(ImVec2(20, 20));
-            if (ImGui::Button("Cerrar")) this->moviendoModelos = false;
+            if (ImGui::Button("Cerrar")) this->estado = Libre;
+        }
+
+        // Si la ventana no está desplegada, Begin devuelve false
+        ImGui::End();
+    }
+
+    void VentanaGestionModelosGUI::dibujarVentanaVisualizacion() {
+        // Posición de la ventana
+        ImGui::SetNextWindowPos(ImVec2(700, 200), ImGuiCond_Once);
+
+        std::string nombre = "Visualización " + this->nombreModelo;
+        if (ImGui::Begin(nombre.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            // La ventana está desplegada
+            ImGui::SetWindowFontScale(this->tamTexto); // Escalamos el texto si fuera necesario
+
+            // Desplegable de materiales
+            if (this->listaMat.empty()) {
+                ImGui::Combo("Material", &this->matSel, opciones_vis_defecto, 1);
+            } else {
+                char **datos = this->listaMat.data(); // Obtenemos un vector básico para la función de ImGUI
+                ImGui::Combo("Material", &this->matSel, datos, this->listaMat.size(), this->listaMat.size());
+            }
+
+            // Desplegable de modos de visualización
+            ImGui::Combo("Selección", &this->visSel, opciones_visualizacion, IM_COUNTOF(opciones_visualizacion), IM_COUNTOF(opciones_visualizacion));
+
+            if (ImGui::Button("Aplicar")) {
+                this->accion = envioMaterial;
+                warnListeners();
+            }
+            ImGui::SameLine();
+
+            // Botón de cerrar
+            if (ImGui::Button("Cerrar")) this->estado = Libre;
         }
 
         // Si la ventana no está desplegada, Begin devuelve false
@@ -133,7 +180,7 @@ namespace PAG {
             }
             ImGui::SameLine();
             // Botón para cargar preset
-            if (ImGui::Button("Load-PAG03")) {
+            if (ImGui::Button("Load-PAG07")) {
                 this->nombreShader = rutaFuenteGLSL;
                 this->seleccionShader = true;
             }
@@ -159,7 +206,7 @@ namespace PAG {
 
             ImGui::Dummy(dummy_sz);
 
-            if (this->seleccionShader && this->seleccionModelo && !this->moviendoModelos) {
+            if (this->seleccionShader && this->seleccionModelo && this->estado == Libre) {
                 // Botón para realizar la carga del modelo con el shader
                 if (ImGui::Button("Cargar Modelo y Shader")) {
                     this->borrar = false;
@@ -182,7 +229,10 @@ namespace PAG {
         if (!this->modelos.empty()) dibujarVentanaModelos();
 
         // Tercero dibujar para el menú de transformacioness
-        if (this->moviendoModelos) dibujarVentanaTransformacion();
+        if (this->estado == Transformaciones) dibujarVentanaTransformacion();
+
+        // Tercero dibujar para el menú de visualizacion de materiales
+        if (this->estado == Materiales) dibujarVentanaVisualizacion();
     }
 
     void VentanaGestionModelosGUI::warnListeners() {
@@ -208,11 +258,29 @@ namespace PAG {
                 float valorX = std::strtof(valorTX, nullptr);
                 float valorY = std::strtof(valorTY, nullptr);
                 float valorZ = std::strtof(valorTZ, nullptr);
-                std::cout << "valores transf " << valorX << ", " << valorY << ", " << valorZ << "." << std::endl;
                 for (Listener *listener: listeners) {
                     listener->wakeUp(this->tipoVentana, this->accion, cadenaNombre,
                         this->transformacion, valorX, valorY, valorZ);
                 }
+                break;
+            }
+            case envioMaterial: {
+                // Obtenemos el material por defecto (Basico)
+                Material mat = this->defecto;
+                std::string nombre = "Basico";
+
+                // Si hay materiales enviamos el seleccionado, si no, el basico
+                if (!this->materiales.empty()) {
+                    mat = this->materiales.find(this->listaMat[this->matSel])->second;
+                    nombre = this->listaMat[this->matSel];
+                }
+
+                // Enviamos los datos del material y el tipo de renderizado
+                for (Listener *listener: listeners) {
+                    listener->wakeUp(this->tipoVentana, this->accion, cadenaNombre, this->visSel, nombre.c_str(),
+                        mat.cAmbiente, mat.cDifuso, mat.cEspecular, mat.eEspecular);
+                }
+
                 break;
             }
         }
@@ -226,6 +294,32 @@ namespace PAG {
 
                 const float* tam = va_arg(args, const float *);
                 if (tam) this->tamTexto = *tam;
+
+                va_end(args);
+                break;
+            }
+            case WindowType::Materials: {
+                std::va_list args;
+                va_start(args, t);
+                Material mat;
+
+                // Obtenemos los datos del material
+                const char* nombre = va_arg(args, const char *);
+                std::string nombreS(nombre);
+                const float* cAmb = va_arg(args, const float*);
+                const float* cDif = va_arg(args, const float*);
+                const float* cEsp = va_arg(args, const float*);
+                const double eEsp = va_arg(args, double);
+
+                // Copiamos los datos al material
+                mat.cAmbiente[0] = cAmb[0]; mat.cAmbiente[1] = cAmb[1]; mat.cAmbiente[2] = cAmb[2];
+                mat.cDifuso[0] = cDif[0]; mat.cDifuso[1] = cDif[1]; mat.cDifuso[2] = cDif[2];
+                mat.cEspecular[0] = cEsp[0]; mat.cEspecular[1] = cEsp[1]; mat.cEspecular[2] = cEsp[2];
+                mat.eEspecular = (float) eEsp;
+
+                // Guardamos el material si es nuevo y actualizamos si ya existía
+                this->materiales[nombreS] = mat;
+                this->listaMat.push_back(strdup(nombre));
 
                 va_end(args);
                 break;

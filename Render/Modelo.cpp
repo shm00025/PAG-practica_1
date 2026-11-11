@@ -241,6 +241,13 @@ namespace PAG {
         this->shaderModelo.actualizarMatrices(v * this->mModelado, pv * this->mModelado);
     }
 
+    void Modelo::asignarMaterial(Material &mat, int tVisualizacion) {
+        // Copiamos el  material proporcionado
+        this->material = mat;
+        this->tipoVisualizacion = tVisualizacion;
+        this->shaderModelo.aplicarMaterial(mat, tVisualizacion);
+    }
+
     void Modelo::refrescar() {
         this->shaderModelo.refrescar();
 

@@ -86,11 +86,28 @@ namespace PAG {
         }
     }
 
-    void ShaderProgram::refrescar() {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glUseProgram(idSP);
+    void ShaderProgram::gestionarSubrutinas() {
+        // Con el shader program activado, buscamos la subrutina
+        GLint subrutinas = 0; // Obtenemos el número de subrutinas que existen (Paraa cuando implementemos luz u otras subrutinas)
+        glGetProgramStageiv(idSP, GL_FRAGMENT_SHADER, GL_ACTIVE_SUBROUTINE_UNIFORMS, &subrutinas);
 
-        // Indicamos los uniform a usar en el renderizado del modelo
+        // Creamos un vector para los indices de las subrutinas
+        std::vector<GLuint> indices(subrutinas);
+
+        // Buscamos la subrutina del modo de visualización y el indice de la opción que vamos a activar
+        GLint posVisual = glGetSubroutineUniformLocation(idSP, GL_FRAGMENT_SHADER, "uMetodoVisualizacionElegido");
+        GLuint indiceOpVisual = glGetSubroutineIndex(idSP, GL_FRAGMENT_SHADER,
+            (this->modoVisualizacion == GL_FILL ? "solido" : "alambre"));
+
+        // Guardamos el índice de la opción en el apartado de su subrutina
+        indices[posVisual] = indiceOpVisual; // Solo guardamos esta porque es la única subrutina por ahora
+
+        // Finalmente lo enviamos a OpenGL
+        glUniformSubroutinesuiv ( GL_FRAGMENT_SHADER, indices.size(), indices.data() );
+    }
+
+    void ShaderProgram::gestionarUniforms() {
+        // Matriz modelo vista proyección
         std::string nombreUniform = "matrizMVP";
         GLint posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
         if ( posicion != -1 )
@@ -98,12 +115,38 @@ namespace PAG {
             glUniformMatrix4fv ( posicion, 1, GL_FALSE, &this->matPVM[0][0] );
         }
 
+        // Matriz modelo vista
         nombreUniform = "matrizMV";
         posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
         if ( posicion != -1 )
         {  // El uniform existe y se ha podido localizar correctamente
             glUniformMatrix4fv ( posicion, 1, GL_FALSE, &this->matVM[0][0] );
         }
+
+        // Componentes del material
+        nombreUniform = "ka"; // Componente ambiente
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform3fv ( posicion, 1, &this->material.cAmbiente[0] ); }
+        nombreUniform = "kd"; // Componente difusa
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform3fv ( posicion, 1, &this->material.cDifuso[0] ); }
+        nombreUniform = "ks"; // Componente especular
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform3fv ( posicion, 1, &this->material.cEspecular[0] ); }
+        nombreUniform = "eS"; // Exponente especular
+        posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
+        if ( posicion != -1 ) { glUniform1f ( posicion, this->material.eEspecular ); }
+    }
+
+    void ShaderProgram::refrescar() {
+        glPolygonMode(GL_FRONT_AND_BACK, this->modoVisualizacion);
+        glUseProgram(idSP);
+
+        // Gestionamos las diferentes subrutinas posibles del programa
+        gestionarSubrutinas();
+
+        // Indicamos los uniform a usar en el renderizado del modelo
+        gestionarUniforms();
     }
 
     /**
@@ -143,5 +186,10 @@ namespace PAG {
             salida.append("\n");
             throw std::runtime_error(salida);
         }
+    }
+
+    void ShaderProgram::aplicarMaterial(Material &mat, int mVisualizacion) {
+        this->material = mat;
+        this->modoVisualizacion = (mVisualizacion == vSolido ? GL_FILL : GL_LINE);
     }
 }

@@ -40,6 +40,9 @@ namespace PAG {
         GLuint idIBO = 0; // Identificador del index buffer object
         std::vector<GLuint> idVBOs = {0, 0};
 
+        Material material;
+        int tipoVisualizacion;
+
         void procesarMalla(aiMesh *malla, std::vector<GLfloat> &atrib1, std::vector<GLfloat> &atrib2);
         void procesarNodo(aiNode *nodo, const aiScene *escena);
         void calcularVectores();
@@ -54,6 +57,7 @@ namespace PAG {
 
         std::string asignarModelo(std::string &rutaOBJ, std::string &rutaShader, TipoVBO tipo);
         void actualizarMatrices(glm::mat4 v, glm::mat4 pv);
+        void asignarMaterial(Material &mat, int tVisualizacion);
 
         void transformar(int t, glm::vec3 valores);
         void refrescar();

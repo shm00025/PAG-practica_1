@@ -212,7 +212,7 @@ namespace PAG {
                             std::string nombreModeloS(nombreModelo);
 
                             // Borramos los datos
-                            borraModelo(nombreModelo);
+                            borraModelo(nombreModeloS);
                             this->mensaje_consola = "\nBorrando el modelo " + nombreModeloS + ".\n\n";
                             break;
                         }
@@ -230,8 +230,36 @@ namespace PAG {
                             // que find lo encuentra a la primera sin
                             this->mensaje_consola = "\nAplicando " + opciones_transformacion[transf]
                             + " al modelo " + nombreModeloS + ".\n\n";
-                            this->modelos.find(nombreModelo)->second.transformar(
+                            this->modelos.find(nombreModeloS)->second.transformar(
                                 transf, glm::vec3(valorX, valorY, valorZ));
+                            break;
+                        }
+                        case envioMaterial: {
+                            Material mat; // Creamos el material
+                            char *nombreModelo = va_arg(args, char *);
+                            std::string nombreModeloS(nombreModelo);
+
+                            // Obtenemos los datos del material
+                            const int tipoVisualizacion = va_arg(args, int);
+                            char *nombreMat = va_arg(args, char *);
+                            std::string nombreMatS(nombreMat);
+                            const float* cAmb = va_arg(args, const float*);
+                            const float* cDif = va_arg(args, const float*);
+                            const float* cEsp = va_arg(args, const float*);
+                            const double eEsp = va_arg(args, double);
+
+                            // Copiamos los datos al material
+                            mat.cAmbiente[0] = cAmb[0]; mat.cAmbiente[1] = cAmb[1]; mat.cAmbiente[2] = cAmb[2];
+                            mat.cDifuso[0] = cDif[0]; mat.cDifuso[1] = cDif[1]; mat.cDifuso[2] = cDif[2];
+                            mat.cEspecular[0] = cEsp[0]; mat.cEspecular[1] = cEsp[1]; mat.cEspecular[2] = cEsp[2];
+                            mat.eEspecular = (float) eEsp;
+
+                            // Aplicamos el material al modelo e indicamos por consola
+                            this->modelos.find(nombreModeloS)->second.asignarMaterial(mat, tipoVisualizacion);
+                            this->mensaje_consola = "\nAplicando el material " + nombreMatS + " al modelo " + nombreModeloS
+                            + " con modo de visualizacion " + opciones_visualizacion[tipoVisualizacion] + ".\n\n";
+
+                            va_end(args);
                             break;
                         }
                     }

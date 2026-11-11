@@ -13,6 +13,7 @@
 #include "VentanaFondoGUI.h"
 #include "VentanaGestionModelosGUI.h"
 #include "VentanaTamTexto.h"
+#include "VentanaMaterialGUI.h"
 #include "../Render/Renderer.h"
 
 #include <GLFW/glfw3.h>
@@ -85,6 +86,13 @@ namespace PAG {
         ventanas.push_back(std::make_unique<VentanaGestionModelosGUI>(lista));
         listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
         this->gestorModelos = dynamic_cast<VentanaGestionModelosGUI *>(ventanas.back().get()); // Lo registramos como el gestor de modelos
+
+        // Selector de materiales
+        std::vector<Listener*> listaSMateriales = {};
+        listaSMateriales.push_back(dynamic_cast<Listener*>(ventanas.front().get())); // Incluimos la consola como su listener para poder mostrar mensajes
+        listaSMateriales.push_back(dynamic_cast<Listener*>(ventanas.back().get())); // Incluimos también el gestor de modelos para enviarle los materiales
+        ventanas.push_back(std::make_unique<VentanaMaterialGUI>(listaSMateriales));
+        listTexto.push_back(dynamic_cast<Listener*>(ventanas.back().get()));
 
         // Selector de tipos de cámara
         lista.push_back(dynamic_cast<Listener*>(ventanas.front().get())); // Incluimos la consola como su listener para poder mostrar mensajes

@@ -109,7 +109,37 @@ namespace PAG {
 
     void VentanaConsolaGUI::wakeUp(WindowType t, ...) {
         switch (t) {
-            case WindowType::Renderer: {
+            case WindowType::Materials: {
+                std::va_list args;
+                va_start(args, t);
+
+                // Obtenemos los datos del material
+                const char* nombre = va_arg(args, const char *);
+                std::string nombreS(nombre);
+                const float* cAmb = va_arg(args, const float*);
+                const float* cDif = va_arg(args, const float*);
+                const float* cEsp = va_arg(args, const float*);
+                const double eEsp = va_arg(args, double);
+                const bool nuevo = va_arg(args, int) == 1;
+
+                if (nuevo) {
+                    this->Items << "Nuevo material. Nombre: " << nombreS << std::endl
+                    << " -> cAmb: [" << cAmb[0] << ", " << cAmb[1] << ", " << cAmb[2] << "]" << std::endl
+                    << " -> cDif: [" << cDif[0] << ", " << cDif[1] << ", " << cDif[2] << "]" << std::endl
+                    << " -> cEsp: [" << cEsp[0] << ", " << cEsp[1] << ", " << cEsp[2] << "]" << std::endl
+                    << " -> exponente: " << eEsp << std::endl << std::endl;
+                } else {
+                    this->Items << "Modificado el material: " << nombreS << std::endl
+                    << " -> cAmb: [" << cAmb[0] << ", " << cAmb[1] << ", " << cAmb[2] << "]" << std::endl
+                    << " -> cDif: [" << cDif[0] << ", " << cDif[1] << ", " << cDif[2] << "]" << std::endl
+                    << " -> cEsp: [" << cEsp[0] << ", " << cEsp[1] << ", " << cEsp[2] << "]" << std::endl
+                    << " -> exponente: " << eEsp << std::endl << std::endl;
+                }
+
+                va_end(args);
+                break;
+            }
+            default: {
                 std::va_list args;
                 va_start(args, t);
 
@@ -122,31 +152,6 @@ namespace PAG {
                 va_end(args);
                 break;
             }
-            case WindowType::General: {
-                std::va_list args;
-                va_start(args, t);
-
-                const char* cadena = va_arg(args, const char *);
-                if (cadena) {
-                    // La añadimos al stream
-                    this->Items << cadena;
-                }
-
-                va_end(args);
-                break;
-            }
-            case WindowType::TextSize: {
-                std::va_list args;
-                va_start(args, t);
-
-                const float* tam = va_arg(args, const float *);
-                if (tam) this->tamTexto = *tam;
-
-                va_end(args);
-                break;
-            }
-                // Procesar el resto de tipos de ventana
         }
-        // Terminar cualquier otro procesamiento que sea necesario
     }
 }
