@@ -10,6 +10,7 @@
 
 #include "Modelo.h"
 #include "Camara.h"
+#include "Luz.h"
 #include "../listener.h"
 
 /** Este struct encapsula los flags que controlan el funcionamiento de los colores. Si queremos una transición
@@ -34,6 +35,8 @@ namespace PAG {
         int ultimaCamara = -1;
         Camara camara;
         std::map<std::string, Modelo> modelos;
+
+        std::map<std::string, Luz> luces;
 
         void warnListeners(WindowType t);
 

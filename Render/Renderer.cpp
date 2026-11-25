@@ -63,7 +63,7 @@ namespace PAG {
     /**
     * Constructor por defecto
     */
-    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), camara(), modelos() {
+    Renderer::Renderer() : tipoVentana(WindowType::Renderer), listeners(), camara(), modelos(), luces() {
         for (const WindowType t : vectorWT) {
             this->listeners[t] = {}; // Creamos una lista vacía por cada tipo de listener
         }
@@ -90,6 +90,7 @@ namespace PAG {
     */
     void Renderer::inicializar(GLint w, GLint h) {
         glClearColor(this->colorFondo[r], this->colorFondo[g], this->colorFondo[b], this->colorFondo[alfa]);
+        glEnable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_PROGRAM_POINT_SIZE);
@@ -103,8 +104,23 @@ namespace PAG {
     */
     void Renderer::refrescar() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        for (std::pair<const std::string, Modelo> &m : this->modelos)
-            m.second.refrescar(); // Refrescamos cada modelo
+
+        // Realizamos las pasadas de luz
+        if (luces.empty()) {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            for (std::pair<const std::string, Modelo> &m : this->modelos)
+                m.second.refrescar(); // Refrescamos cada modelo
+
+
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            for () {
+                for (std::pair<const std::string, Modelo> &m : this->modelos)
+                m.second.refrescar(); // Refrescamos cada modelo
+            }
+        } else {
+            for (std::pair<const std::string, Modelo> &m : this->modelos)
+                m.second.refrescarSinLuz(); // Refrescamos cada modelo pero sin luz
+        }
     }
 
     void Renderer::redimensionar(int width, int height) {

@@ -20,6 +20,8 @@ add_executable(${PROJECT_NAME} ${MY_FILES}
                                ${MY_HEADERS}
                                ${GLAD_FILES}
                                ${IMGUI_FILES}
+        Render/Luz.cpp
+        Render/Luz.h
 )
 
 find_package(OpenGL REQUIRED)

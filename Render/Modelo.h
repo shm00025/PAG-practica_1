@@ -61,6 +61,7 @@ namespace PAG {
 
         void transformar(int t, glm::vec3 valores);
         void refrescar();
+        void refrescarSinLuz();
 
         void VBOEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *atributos);
         void VBONoEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *vertices, GLfloat *colores);
