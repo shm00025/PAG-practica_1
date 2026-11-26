@@ -106,16 +106,19 @@ namespace PAG {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Realizamos las pasadas de luz
-        if (luces.empty()) {
+        if (!luces.empty()) {
+            // Activamos la primera función de mezcla para la primera luz
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            for (std::pair<const std::string, Modelo> &m : this->modelos)
-                m.second.refrescar(); // Refrescamos cada modelo
+            // Aprovechamos la máquina de estados para dejar activada la función inicial
+            // y actualizamos al final para la siguiente pasada
+            for (std::pair<const std::string, Luz> &l: this->luces) { // Para cada luz
+                for (std::pair<const std::string, Modelo> &m : this->modelos) { // Para cada modelo
+                    m.second.iniciarRefresco();
+                    l.second.aplicarLuz(&(m.second)); // Aplicamos la luz al modelo
+                    m.second.finalizarRefresco();
+                }
 
-
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            for () {
-                for (std::pair<const std::string, Modelo> &m : this->modelos)
-                m.second.refrescar(); // Refrescamos cada modelo
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             }
         } else {
             for (std::pair<const std::string, Modelo> &m : this->modelos)

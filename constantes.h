@@ -11,7 +11,8 @@
 enum TipoShader {VertexShader, FragmentShader};
 enum TipoVBO {NoEntrelazado, Entrelazado};
 
-const std::string rutaFuenteGLSL = "../shaders/pag07";
+const std::string rutaFuenteGLSL = "../shaders/pag08";
+const std::string nombreFuenteGLSL = "Load-PAG08";
 const std::string sufijoVS = "-vs.glsl";
 const std::string sufijoFS = "-fs.glsl";
 
@@ -52,4 +53,7 @@ inline const char* opciones_visualizacion[] = { "Solido", "Alambre" };
 inline const char* opciones_vis_defecto[] = { "Basico" };
 constexpr int vSolido = 0, vAlambre = 1;
 
+// Indicamos los tipos de luz
+enum TipoLuz {Ambiente, Puntual, Direccional, Foco};
+const std::string SubrutinaLuz = "uTipoLuz", OpcionSinLuz = "basico";
 #endif //PRACTICA_1_CONSTANTES_H

@@ -8,6 +8,8 @@ file(GLOB MY_GUI_FILES GUI/*.cpp)
 file(GLOB MY_GUI_HEADERS GUI/*.h)
 file(GLOB MY_RENDER_FILES Render/*.cpp)
 file(GLOB MY_RENDER_HEADERS Render/*.h)
+file(GLOB MY_LIGHT_FILES Render/Iluminacion/*.cpp)
+file(GLOB MY_LIGHT_HEADERS Render/Iluminacion/*.h)
 file(GLOB MY_HEADERS *.h)
 file(GLOB GLAD_FILES GLAD/src/*.c)
 file(GLOB IMGUI_FILES imgui/src/*.cpp)
@@ -17,11 +19,11 @@ add_executable(${PROJECT_NAME} ${MY_FILES}
                                ${MY_GUI_HEADERS}
                                ${MY_RENDER_FILES}
                                ${MY_RENDER_HEADERS}
+                               ${MY_LIGHT_FILES}
+                               ${MY_LIGHT_HEADERS}
                                ${MY_HEADERS}
                                ${GLAD_FILES}
                                ${IMGUI_FILES}
-        Render/Luz.cpp
-        Render/Luz.h
 )
 
 find_package(OpenGL REQUIRED)

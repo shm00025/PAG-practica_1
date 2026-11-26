@@ -73,6 +73,9 @@ void consultarCompilacion(GLint id, bool isShader) {
     }
 }
 
+
+
+
 namespace PAG {
     ShaderProgram::~ShaderProgram() {
         if (idVS != 0) {
@@ -86,7 +89,7 @@ namespace PAG {
         }
     }
 
-    void ShaderProgram::gestionarSubrutinas() {
+    void ShaderProgram::activarSubrutina(std::string nombreSR, std::string nombreOpcion) {
         // Con el shader program activado, buscamos la subrutina
         GLint subrutinas = 0; // Obtenemos el número de subrutinas que existen (Paraa cuando implementemos luz u otras subrutinas)
         glGetProgramStageiv(idSP, GL_FRAGMENT_SHADER, GL_ACTIVE_SUBROUTINE_UNIFORMS, &subrutinas);
@@ -94,19 +97,18 @@ namespace PAG {
         // Creamos un vector para los indices de las subrutinas
         std::vector<GLuint> indices(subrutinas);
 
-        // Buscamos la subrutina del modo de visualización y el indice de la opción que vamos a activar
-        GLint posVisual = glGetSubroutineUniformLocation(idSP, GL_FRAGMENT_SHADER, "uMetodoVisualizacionElegido");
-        GLuint indiceOpVisual = glGetSubroutineIndex(idSP, GL_FRAGMENT_SHADER,
-            (this->modoVisualizacion == GL_FILL ? "solido" : "alambre"));
+        // Buscamos la subrutina del tipo de luz y el indice de la opción que vamos a activar
+        GLint posLuz = glGetSubroutineUniformLocation(idSP, GL_FRAGMENT_SHADER, nombreSR.c_str());
+        GLuint indiceOpLuz = glGetSubroutineIndex(idSP, GL_FRAGMENT_SHADER, nombreOpcion.c_str());
 
         // Guardamos el índice de la opción en el apartado de su subrutina
-        indices[posVisual] = indiceOpVisual; // Solo guardamos esta porque es la única subrutina por ahora
+        indices[posLuz] = indiceOpLuz; // Solo guardamos esta porque es la única subrutina por ahora
 
         // Finalmente lo enviamos a OpenGL
         glUniformSubroutinesuiv ( GL_FRAGMENT_SHADER, indices.size(), indices.data() );
     }
 
-    void ShaderProgram::gestionarUniforms() {
+    void ShaderProgram::gestionarUniformsComunes() {
         // Matriz modelo vista proyección
         std::string nombreUniform = "matrizMVP";
         GLint posicion = glGetUniformLocation(idSP, nombreUniform.c_str());
@@ -138,15 +140,15 @@ namespace PAG {
         if ( posicion != -1 ) { glUniform1f ( posicion, this->material.eEspecular ); }
     }
 
+    // Tras llamar a esta funcion se deben invocar las de activación de subrutinas y definición de uniforms
     void ShaderProgram::refrescar() {
         glPolygonMode(GL_FRONT_AND_BACK, this->modoVisualizacion);
         glUseProgram(idSP);
 
-        // Gestionamos las diferentes subrutinas posibles del programa
-        gestionarSubrutinas();
-
         // Indicamos los uniform a usar en el renderizado del modelo
-        gestionarUniforms();
+        gestionarUniformsComunes();
+
+        // Gestionamos las diferentes subrutinas posibles del programa desde la luz
     }
 
     /**

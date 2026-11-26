@@ -25,15 +25,18 @@ namespace PAG {
 
         Material material;
         GLint modoVisualizacion = GL_FILL;
-        void gestionarSubrutinas();
-        void gestionarUniforms();
+
+        void gestionarUniformsComunes();
 
     public:
         ShaderProgram() = default;
         ~ShaderProgram();
 
-        void refrescar();
         void creaShaderProgram(std::string &rutaShader);
+        void refrescar();
+
+        void activarSubrutina(std::string nombreSR, std::string nombreOpcion);
+        GLuint getIdSP() { return idSP; }
 
         void actualizarMatrices(glm::mat4 vm, glm::mat4 pvm) { this->matVM = vm, this->matPVM = pvm; }
         void aplicarMaterial(Material &mat, int mVisualizacion);

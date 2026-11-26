@@ -180,7 +180,7 @@ namespace PAG {
             }
             ImGui::SameLine();
             // Botón para cargar preset
-            if (ImGui::Button("Load-PAG07")) {
+            if (ImGui::Button(nombreFuenteGLSL.c_str())) {
                 this->nombreShader = rutaFuenteGLSL;
                 this->seleccionShader = true;
             }

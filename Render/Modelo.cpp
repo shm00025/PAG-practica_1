@@ -248,9 +248,24 @@ namespace PAG {
         this->shaderModelo.aplicarMaterial(mat, tVisualizacion);
     }
 
-    void Modelo::refrescar() {
+    void Modelo::iniciarRefresco() {
+        // Iniciamos el refresco con el shader program
         this->shaderModelo.refrescar();
+        // Tras esta función llamamos a las luces
+    }
 
+    void Modelo::finalizarRefresco() {
+        // Finalizamos el refresco dibujando el objeto
+        glBindVertexArray(idVAO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
+        glDrawElements(GL_TRIANGLES, this->tamVIndices, GL_UNSIGNED_INT, nullptr);
+    }
+
+    void Modelo::refrescarSinLuz() {
+        // El shader program activa los uniforms básicos
+        this->shaderModelo.refrescar();
+        // Activamos la subrutina básica (Práctica 7)
+        this->shaderModelo.activarSubrutina(SubrutinaLuz, OpcionSinLuz);
         glBindVertexArray(idVAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idIBO);
         glDrawElements(GL_TRIANGLES, this->tamVIndices, GL_UNSIGNED_INT, nullptr);

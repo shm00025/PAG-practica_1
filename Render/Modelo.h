@@ -60,8 +60,10 @@ namespace PAG {
         void asignarMaterial(Material &mat, int tVisualizacion);
 
         void transformar(int t, glm::vec3 valores);
-        void refrescar();
+        void iniciarRefresco();
+        void finalizarRefresco();
         void refrescarSinLuz();
+        GLuint getIdSP() { return this->shaderModelo.getIdSP(); }
 
         void VBOEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *atributos);
         void VBONoEnt_CoordenadasYColor(GLuint *indices, int tamAtributoCompleto, int datosPorVertice, GLfloat *vertices, GLfloat *colores);
